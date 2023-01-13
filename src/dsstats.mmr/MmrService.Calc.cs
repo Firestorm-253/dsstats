@@ -182,4 +182,20 @@ public static partial class MmrService
         }
         return ratings;
     }
+
+    private static void UpdateConfidenceDatas(CalcRating currentPlayerRating, TeamData teamData)
+    {
+        double key = Math.Round(teamData.ExpectedResult, 1);
+
+        int gamesAfter = currentPlayerRating.ConfidenceDatas[key].Games + 1;
+        int winsAfter = currentPlayerRating.ConfidenceDatas[key].Wins + teamData.ActualResult;
+        double avgExpectationToWinAfter = ((currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * currentPlayerRating.ConfidenceDatas[key].Games) + teamData.ExpectedResult) / gamesAfter;
+
+        currentPlayerRating.ConfidenceDatas[key] = new ConfidenceData()
+        {
+            AvgExpectationToWin = avgExpectationToWinAfter,
+            Wins = winsAfter,
+            Games = gamesAfter
+        };
+    }
 }
