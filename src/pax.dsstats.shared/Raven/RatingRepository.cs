@@ -104,6 +104,14 @@ public record CalcRating
     public double Confidence { get; set; }
     public bool IsUploader { get; set; }
     public Dictionary<Commander, int> CmdrCounts { get; set; } = new();
+    public Dictionary<double, ConfidenceData> ConfidenceDatas { get; set; } = new();
+}
+
+public record ConfidenceData
+{
+    public double AvgExpectationToWin { get; init; }
+    public int Wins { get; init; }
+    public int Games { get; init; }
 }
 
 public record TimeRating

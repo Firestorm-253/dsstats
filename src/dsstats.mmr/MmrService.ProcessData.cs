@@ -64,6 +64,21 @@ public partial class MmrService
                 Consistency = 0,
                 Confidence = 0,
                 Games = 0,
+
+                ConfidenceDatas = new Dictionary<double, ConfidenceData>()
+                {
+                    { 0.00, new() },
+                    { 0.10, new() },
+                    { 0.20, new() },
+                    { 0.30, new() },
+                    { 0.40, new() },
+                    { 0.50, new() },
+                    { 0.60, new() },
+                    { 0.70, new() },
+                    { 0.80, new() },
+                    { 0.90, new() },
+                    { 1.00, new() }
+                }
             };
         }
 
