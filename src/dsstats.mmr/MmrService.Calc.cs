@@ -198,4 +198,26 @@ public static partial class MmrService
             Games = gamesAfter
         };
     }
+
+    private static double GetConfidenceAfter(CalcRating currentPlayerRating)
+    {
+        int totalGames = currentPlayerRating.ConfidenceDatas.Sum(x => x.Value.Games);
+
+        double confidenceLoss = 0;
+        foreach (var ent in currentPlayerRating.ConfidenceDatas) // Dictionary<double, ConfidenceData> => { percentagePoint, (avgExpectationToWin, wins, games) }
+        {
+            if (ent.Value.Games == 0)
+            {
+                continue;
+            }
+
+            double impact = ent.Value.Games / (double)totalGames;
+
+            double winrate = ent.Value.Wins / (double)ent.Value.Games;
+            double avgExpectationToWin = ent.Value.AvgExpectationToWin;
+
+            confidenceLoss += impact * Math.Abs(winrate - avgExpectationToWin);
+        }
+        return 1 - confidenceLoss;
+    }
 }
