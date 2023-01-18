@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.mmr.cli", "dsstats.mmr.cli.csproj", "{7EA0CF4E-8AF7-4E67-B11F-2EE9B8A6F144}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.mmr", "..\dsstats.mmr\dsstats.mmr.csproj", "{A647F739-E9C1-4BC3-B7CD-D029F3BEFE9C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7EA0CF4E-8AF7-4E67-B11F-2EE9B8A6F144}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EA0CF4E-8AF7-4E67-B11F-2EE9B8A6F144}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EA0CF4E-8AF7-4E67-B11F-2EE9B8A6F144}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A647F739-E9C1-4BC3-B7CD-D029F3BEFE9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A647F739-E9C1-4BC3-B7CD-D029F3BEFE9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A647F739-E9C1-4BC3-B7CD-D029F3BEFE9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A647F739-E9C1-4BC3-B7CD-D029F3BEFE9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

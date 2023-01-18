@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\dsstats.mmr\dsstats.mmr.csproj" />
+  </ItemGroup>
+
 </Project>
