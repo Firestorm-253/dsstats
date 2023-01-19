@@ -10,6 +10,11 @@ public record TeamData
         ActualResult = isWinner ? 1 : 0;
 
         Players = replayPlayers.Select(p => new PlayerData(replay, p)).ToArray();
+
+        if (replayPlayers.Any())
+        {
+            IsTeam1 = replayPlayers.ElementAt(0).Team == 1;
+        }
     }
     public TeamData(bool isWinner,
                     double mmr,
@@ -27,6 +32,7 @@ public record TeamData
         Players = players;
     }
 
+    public bool IsTeam1 { get; init; }
     public PlayerData[] Players { get; init; }
 
     public bool IsWinner { get; init; }
