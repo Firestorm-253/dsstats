@@ -140,7 +140,8 @@ public static partial class MmrService
         {
             LeaverType = replayData.LeaverType,
             ReplayId = replayData.ReplayId,
-            RepPlayerRatings = mmrChanges1.Concat(mmrChanges2).ToList()
+            RepPlayerRatings = mmrChanges1.Concat(mmrChanges2).ToList(),
+            Team1_ExpectationToWin = replayData.WinnerTeamData.IsTeam1 ? replayData.WinnerTeamData.ExpectedResult : replayData.LoserTeamData.ExpectedResult
         };
     }
 
