@@ -13,8 +13,8 @@ public static class ReplayService
 
         foreach (var replay in replays)
         {
-            var (replayRatingDto, _) = MmrService.ProcessReplay(replay, mmrIdRatings, cmdrMmrDic, mmrOptions);
-            replayRatings.Add(replayRatingDto!);
+            var replayRatingDto = MmrService.ProcessReplay(replay, mmrIdRatings, cmdrMmrDic, mmrOptions)!;
+            replayRatings.Add(replayRatingDto);
         }
 
         return replayRatings;
