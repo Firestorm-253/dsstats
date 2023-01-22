@@ -33,7 +33,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public ReplayDetailsDto? LatestReplay { get; set; } = default!;
+    public ReplayDetailsDto? LatestReplay { get; set; }
 
     private PlayerDetailsNgComponent? playerDetailsNgComponent;
     private RequestNames? requestNames;
@@ -61,7 +61,7 @@
     {
         if (firstRender)
         {
-            _ = LoadData();
+            _ = LoadData(true);
         }
         base.OnAfterRender(firstRender);
     }
@@ -81,7 +81,7 @@
         _ = LoadData();
     }
 
-    private async Task LoadData()
+    private async Task LoadData(bool init = false)
     {
         if (LatestReplay == null)
         {
@@ -135,13 +135,13 @@
         NavigationManager.NavigateTo(
             NavigationManager.GetUriWithQueryParameters("replays",
                 new Dictionary<string, object?>()
-                        {
+                {
                     { "Players", request.Name },
                     { "ToonId", request.ToonId },
                     { "ToonIdWith", request.ToonIdWith == 0 ? null : request.ToonIdWith },
                     { "ToonIdVs", request.ToonIdVs == 0 ? null : request.ToonIdVs },
                     { "ToonIdName", request.ToonIdName },
-                        }
+                }
             )
         );
     }
