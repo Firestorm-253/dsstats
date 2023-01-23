@@ -58,11 +58,15 @@ public enum PlayerResult
 
 public enum RatingType
 {
-    None = 0,
-    Cmdr = 1,
-    Std = 2,
-    CmdrTE = 3,
-    StdTE = 4
+    None = 0x00,
+
+    Cmdr = 0x10,
+    Std = 0x20,
+
+    TE = 0x01,
+
+    CmdrTE = Cmdr | TE,
+    StdTE = Std | TE,
 }
 
 public enum TimePeriod
