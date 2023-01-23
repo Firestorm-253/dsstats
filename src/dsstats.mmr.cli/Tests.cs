@@ -3,6 +3,7 @@ using pax.dsstats.shared;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,8 +27,11 @@ public static class Tests
         do
         {
             //replayDsRDtos = replayDsRDtos.Where(x => x.ReplayPlayers.Any(x => x.Player.Name == "Kragh")).ToList();
+            
+            Stopwatch sw = Stopwatch.StartNew();
             var replayDatas = ReplayService.ProduceRatings(replayDsRDtos, new MmrOptions(true, startClip, clip));
-
+            sw.Stop();
+            var miliseconds = sw.ElapsedMilliseconds;
 
             //var aot = GetAccuracyOverTime(GetAccuracyOverTime(replayDatas));
             var aoga = GetAccuracyOverGamesAmount(replayDatas);
