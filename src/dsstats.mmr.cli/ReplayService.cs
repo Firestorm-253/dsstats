@@ -27,7 +27,7 @@ public static class ReplayService
     {
         var replayDatas = new List<ReplayData>();
         var mmrIdRatings = new Dictionary<int, CalcRating>();
-        var cmdrMmrDic = new Dictionary<CmdrMmmrKey, CmdrMmmrValue>();
+        var cmdrMmrDic = new Dictionary<CmdrMmrKey, CmdrMmrValue>();
 
         foreach (var replay in replays)
         {
