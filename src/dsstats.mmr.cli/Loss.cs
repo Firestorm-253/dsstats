@@ -1,4 +1,4 @@
-﻿using dsstats.mmr.ProcessData;
+﻿using dsstats.mmr.cli.ProcessData;
 using System;
 using System.Collections.Generic;
 using System.Linq;

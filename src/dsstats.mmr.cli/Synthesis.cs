@@ -1,5 +1,5 @@
 ﻿//using dsstats.mmr;
-//using dsstats.mmr.ProcessData;
+//using dsstats.mmr.cli.ProcessData.ProcessData;
 //using pax.dsstats.dbng.Services;
 //using pax.dsstats.shared;
 //using pax.dsstats.shared.Raven;
@@ -42,13 +42,13 @@
 //        maxLeaver: 0,
 //        maxkillsum: 10_000,
 //        confidence: (winnersConfidence + losersConfidence) / 2,
-//        winnerTeamData: new dsstats.mmr.ProcessData.TeamData(true, winnersMmr, winnersConfidence, 0, winnersExpectedResult, new PlayerData[]
+//        winnerTeamData: new dsstats.mmr.cli.ProcessData.ProcessData.TeamData(true, winnersMmr, winnersConfidence, 0, winnersExpectedResult, new PlayerData[]
 //        {
 //            new PlayerData(Commander.Artanis, Commander.Artanis, duration, false, winnersMmr, 0, winnersConfidence, 1, 1, 1, 1, true, 10_000, PlayerResult.Win),
 //            new PlayerData(Commander.Artanis, Commander.Artanis, duration, false, winnersMmr, 0, winnersConfidence, 2, 2, 2, 2, true, 10_000, PlayerResult.Win),
 //            new PlayerData(Commander.Artanis, Commander.Artanis, duration, false, winnersMmr, 0, winnersConfidence, 3, 3, 3, 3, true, 10_000, PlayerResult.Win),
 //        }),
-//        loserTeamData: new dsstats.mmr.ProcessData.TeamData(false, losersMmr, losersConfidence, 0, (1 - winnersExpectedResult), new PlayerData[]
+//        loserTeamData: new dsstats.mmr.cli.ProcessData.ProcessData.TeamData(false, losersMmr, losersConfidence, 0, (1 - winnersExpectedResult), new PlayerData[]
 //        {
 //            new PlayerData(Commander.Artanis, Commander.Artanis, duration, false, losersMmr, 0, losersConfidence, 4, 4, 4, 4, true, 10_000, PlayerResult.Los),
 //            new PlayerData(Commander.Artanis, Commander.Artanis, duration, false, losersMmr, 0, losersConfidence, 5, 5, 5, 5, true, 10_000, PlayerResult.Los),
