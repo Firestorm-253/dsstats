@@ -138,6 +138,9 @@ public static partial class MmrService
             double mmrAfter = player.Mmr + player.Deltas.Mmr;
             double consistencyAfter = ((player.Consistency * consistencyBeforePercentage) + (player.Deltas.Consistency * (1 - consistencyBeforePercentage)));
             double confidenceAfter = ((player.Confidence * confidenceBeforePercentage) + (player.Deltas.Confidence * (1 - confidenceBeforePercentage)));
+            
+            UpdateConfidenceDatas(currentPlayerRating, teamData);
+            double confidenceAfter = GetConfidenceAfter(currentPlayerRating);
 
             consistencyAfter = Math.Clamp(consistencyAfter, 0, 1);
             confidenceAfter = Math.Clamp(confidenceAfter, 0, 1);
@@ -176,5 +179,43 @@ public static partial class MmrService
             currentPlayerRating.SetMmr(mmrAfter, gameTime);
         }
         return ratings;
+    }
+
+    private static void UpdateConfidenceDatas(CalcRating currentPlayerRating, TeamData teamData)
+    {
+        double key = Math.Round(teamData.ExpectedResult, 1);
+
+        int gamesAfter = currentPlayerRating.ConfidenceDatas[key].Games + 1;
+        int winsAfter = currentPlayerRating.ConfidenceDatas[key].Wins + teamData.ActualResult;
+        double avgExpectationToWinAfter = ((currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * currentPlayerRating.ConfidenceDatas[key].Games) + teamData.ExpectedResult) / gamesAfter;
+
+        currentPlayerRating.ConfidenceDatas[key] = new ConfidenceData()
+        {
+            AvgExpectationToWin = avgExpectationToWinAfter,
+            Wins = winsAfter,
+            Games = gamesAfter
+        };
+    }
+
+    private static double GetConfidenceAfter(CalcRating currentPlayerRating)
+    {
+        int totalGames = currentPlayerRating.ConfidenceDatas.Sum(x => x.Value.Games);
+
+        double confidenceLoss = 0;
+        foreach (var ent in currentPlayerRating.ConfidenceDatas) // Dictionary<double, ConfidenceData> => { percentagePoint, (avgExpectationToWin, wins, games) }
+        {
+            if (ent.Value.Games == 0)
+            {
+                continue;
+            }
+
+            double impact = ent.Value.Games / (double)totalGames;
+
+            double winrate = ent.Value.Wins / (double)ent.Value.Games;
+            double avgExpectationToWin = ent.Value.AvgExpectationToWin;
+
+            confidenceLoss += impact * Math.Abs(winrate - avgExpectationToWin);
+        }
+        return 1 - confidenceLoss;
     }
 }
