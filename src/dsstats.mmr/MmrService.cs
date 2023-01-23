@@ -126,26 +126,23 @@ public static partial class MmrService
 
     public static RatingType GetRatingType(ReplayDsRDto replayDsRDto)
     {
-        if (replayDsRDto.TournamentEdition && replayDsRDto.GameMode == GameMode.Commanders)
+        var ratingType = RatingType.None;
+
+        if (replayDsRDto.TournamentEdition)
         {
-            return RatingType.CmdrTE;
+            ratingType |= RatingType.TE;
         }
-        else if (replayDsRDto.TournamentEdition && replayDsRDto.GameMode == GameMode.Standard)
+
+        if (replayDsRDto.GameMode == GameMode.Standard)
         {
-            return RatingType.StdTE;
+            ratingType |= RatingType.Std;
         }
         else if (replayDsRDto.GameMode == GameMode.Commanders || replayDsRDto.GameMode == GameMode.CommandersHeroic)
         {
-            return RatingType.Cmdr;
+            ratingType |= RatingType.Cmdr;
         }
-        else if (replayDsRDto.GameMode == GameMode.Standard)
-        {
-            return RatingType.Std;
-        }
-        else
-        {
-            return RatingType.None;
-        }
+
+        return ratingType;
     }
 
     public static LeaverType GetLeaverType(ReplayDsRDto replay)
