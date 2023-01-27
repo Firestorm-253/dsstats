@@ -13,6 +13,7 @@ public class ReplayRating
     public LeaverType LeaverType { get; set; }
     public int ReplayId { get; set; }
     public Replay Replay { get; set; } = null!;
+    public double Team1_ExpectationToWin { get; set; }
     public virtual ICollection<RepPlayerRating> RepPlayerRatings { get; set; }
 }
 
