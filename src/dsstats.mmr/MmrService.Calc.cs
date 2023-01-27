@@ -135,17 +135,16 @@ public static partial class MmrService
         List<RepPlayerRatingDto> ratings = new();
         foreach (var player in teamData.Players)
         {
+            var currentPlayerRating = mmrIdRatings[player.MmrId];
+
             double mmrAfter = player.Mmr + player.Deltas.Mmr;
             double consistencyAfter = ((player.Consistency * consistencyBeforePercentage) + (player.Deltas.Consistency * (1 - consistencyBeforePercentage)));
-            double confidenceAfter = ((player.Confidence * confidenceBeforePercentage) + (player.Deltas.Confidence * (1 - confidenceBeforePercentage)));
             
             UpdateConfidenceDatas(currentPlayerRating, teamData);
             double confidenceAfter = GetConfidenceAfter(currentPlayerRating);
 
             consistencyAfter = Math.Clamp(consistencyAfter, 0, 1);
             confidenceAfter = Math.Clamp(confidenceAfter, 0, 1);
-
-            var currentPlayerRating = mmrIdRatings[player.MmrId];
 
             ratings.Add(new()
             {
@@ -181,14 +180,18 @@ public static partial class MmrService
         return ratings;
     }
 
+    const double gamesRange = 100;
     private static void UpdateConfidenceDatas(CalcRating currentPlayerRating, TeamData teamData)
     {
+        //double gamesRangePerPercentage = gamesRange / currentPlayerRating.ConfidenceDatas.Count;
         double key = Math.Round(teamData.ExpectedResult, 1);
 
         int gamesAfter = currentPlayerRating.ConfidenceDatas[key].Games + 1;
         int winsAfter = currentPlayerRating.ConfidenceDatas[key].Wins + teamData.ActualResult;
+        
         double avgExpectationToWinAfter = ((currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * currentPlayerRating.ConfidenceDatas[key].Games) + teamData.ExpectedResult) / gamesAfter;
-
+        //double avgExpectationToWinAfter = (currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * (1 - (1 / gamesRangePerPercentage))) + ((1 / gamesRangePerPercentage) * teamData.ExpectedResult);
+        
         currentPlayerRating.ConfidenceDatas[key] = new ConfidenceData()
         {
             AvgExpectationToWin = avgExpectationToWinAfter,
@@ -202,7 +205,7 @@ public static partial class MmrService
         int totalGames = currentPlayerRating.ConfidenceDatas.Sum(x => x.Value.Games);
 
         double confidenceLoss = 0;
-        foreach (var ent in currentPlayerRating.ConfidenceDatas) // Dictionary<double, ConfidenceData> => { percentagePoint, (avgExpectationToWin, wins, games) }
+        foreach (var ent in currentPlayerRating.ConfidenceDatas)
         {
             if (ent.Value.Games == 0)
             {
@@ -216,6 +219,8 @@ public static partial class MmrService
 
             confidenceLoss += impact * Math.Abs(winrate - avgExpectationToWin);
         }
-        return 1 - confidenceLoss;
+
+        double realConfidence = (1 - confidenceLoss);
+        return realConfidence * (1 - Math.Pow(Math.E, -(totalGames / gamesRange)));
     }
 }
