@@ -9,7 +9,7 @@ namespace dsstats.mmr.cli;
 
 public static class Loss
 {
-    public static double GetLoss(double clip, List<ReplayData> replays)
+    public static double GetLoss(List<ReplayData> replays)
     {
         var accuracies = GetAccuracies(replays);
         int totalCount = accuracies.Sum(x => x.Value.Item2);
@@ -17,9 +17,9 @@ public static class Loss
         double loss = 0;
         foreach (var ent in accuracies)
         {
-            double weighting = ent.Value.Item2 / (double)totalCount;
+            double impact = ent.Value.Item2 / (double)totalCount;
 
-            loss += weighting * Math.Abs(ent.Key - ent.Value.Item1);
+            loss += impact * Math.Pow(ent.Key - ent.Value.Item1, 2);
         }
         return loss;
 
@@ -135,7 +135,7 @@ public static class Loss
 
     public static Dictionary<double, (double, int)> GetAccuracies(List<ReplayData> replayDatas)
     {
-        int digits = 3;
+        int digits = 2;
 
         var totalExpectationsCount = new Dictionary<double, int>();
         var correctExpectationsCount = new Dictionary<double, int>();

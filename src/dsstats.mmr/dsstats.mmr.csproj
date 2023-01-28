@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="FunctionManger" Version="1.0.0" />
+    <PackageReference Include="NeuralNetwork" Version="10.6.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\pax.dsstats.shared\pax.dsstats.shared.csproj" />
   </ItemGroup>
 

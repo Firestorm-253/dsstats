@@ -1,4 +1,5 @@
 ﻿using dsstats.mmr.ProcessData;
+using dsstats.mmr.NN;
 using pax.dsstats.shared;
 
 using TeamData = dsstats.mmr.ProcessData.TeamData;
@@ -8,15 +9,48 @@ namespace dsstats.mmr;
 public partial class MmrService
 {
     public static void SetReplayData(Dictionary<int, CalcRating> mmrIdRatings,
-                                      ReplayData replayData,
-                                      Dictionary<CmdrMmrKey, CmdrMmrValue> cmdrDic,
-                                      MmrOptions mmrOptions)
+                                     ReplayData replayData,
+                                     Dictionary<CmdrMmrKey, CmdrMmrValue> cmdrDic,
+                                     MmrOptions mmrOptions)
     {
         SetTeamData(mmrIdRatings, replayData, replayData.WinnerTeamData, cmdrDic, mmrOptions);
         SetTeamData(mmrIdRatings, replayData, replayData.LoserTeamData, cmdrDic, mmrOptions);
-        SetExpectationsToWin(replayData, mmrOptions);
 
         replayData.Confidence = (replayData.WinnerTeamData.Confidence + replayData.LoserTeamData.Confidence) / 2;
+
+        SetNNData(replayData, mmrOptions);
+
+        SetExpectationsToWin(replayData, mmrOptions);
+    }
+
+    private static void SetNNData(ReplayData replayData,
+                                  MmrOptions mmrOptions)
+    {
+        TeamData team1 = null!;
+        TeamData team2 = null!;
+
+        if (replayData.WinnerTeamData.IsTeam1)
+        {
+            team1 = replayData.WinnerTeamData;
+            team2 = replayData.LoserTeamData;
+        }
+        else
+        {
+            team1 = replayData.LoserTeamData;
+            team2 = replayData.WinnerTeamData;
+        }
+
+        var team1_ordered = team1.Players.OrderBy(x => x.Mmr).ToArray();
+        var team2_ordered = team2.Players.OrderBy(x => x.Mmr).ToArray();
+
+        var nnData = new double[6];
+        for (int i = 0; i < team1.Players.Length; i++)
+        {
+            nnData[i] = team1_ordered[i].Mmr / mmrOptions.StartMmr;
+            nnData[i + team1.Players.Length] = team2_ordered[i].Mmr / mmrOptions.StartMmr;
+        }
+
+        replayData.NN_Data = nnData;
     }
 
     private static void SetTeamData(Dictionary<int, CalcRating> mmrIdRatings,
@@ -42,7 +76,9 @@ public partial class MmrService
 
     private static void SetExpectationsToWin(ReplayData replayData, MmrOptions mmrOptions)
     {
-        double winnerPlayersExpectationToWin = EloExpectationToWin(replayData.WinnerTeamData.Mmr, replayData.LoserTeamData.Mmr, mmrOptions.Clip);
+        var nnExpectationToWin = NN.MmrService.Network.GetValues(replayData.NN_Data)[0][0];
+
+        double winnerPlayersExpectationToWin = replayData.WinnerTeamData.IsTeam1 ? nnExpectationToWin : (1 - nnExpectationToWin); //EloExpectationToWin(replayData.WinnerTeamData.Mmr, replayData.LoserTeamData.Mmr, mmrOptions.Clip);
         replayData.WinnerTeamData.ExpectedResult = winnerPlayersExpectationToWin;
 
         if (mmrOptions.UseCommanderMmr)

@@ -36,4 +36,6 @@ public record ReplayData
     public double Confidence { get; set; }
 
     public bool CorrectPrediction => (WinnerTeamData.ExpectedResult > 0.50);
+
+    public double[] NN_Data { get; set; }
 }

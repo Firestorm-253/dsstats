@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="FunctionManger" Version="1.0.0" />
+    <PackageReference Include="NeuralNetwork" Version="10.6.2.1" />
   </ItemGroup>
 
   <ItemGroup>
