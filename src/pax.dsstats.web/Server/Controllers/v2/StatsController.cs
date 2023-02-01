@@ -51,11 +51,11 @@ namespace pax.dsstats.web.Server.Controllers.v2
 
         [HttpPost]
         [Route("GetReplaysCount")]
-        public async Task<ActionResult<int>> GetReplaysCount(ReplaysRequest request, CancellationToken token = default)
+        public async Task<ActionResult<int>> GetReplaysCount(ReplaysRequestV2 request, CancellationToken token = default)
         {
             try
             {
-                return await replayRepository.GetReplaysCount(request, token);
+                return await replayRepository.GetReplaysCount(request.GetReplaysRequest(), token);
             }
             catch (OperationCanceledException) { }
             return NoContent();
@@ -63,11 +63,11 @@ namespace pax.dsstats.web.Server.Controllers.v2
 
         [HttpPost]
         [Route("GetReplays")]
-        public async Task<ActionResult<ICollection<ReplayListDto>>> GetReplays(ReplaysRequest request, CancellationToken token = default)
+        public async Task<ActionResult<ICollection<ReplayListDto>>> GetReplays(ReplaysRequestV2 request, CancellationToken token = default)
         {
             try
             {
-                return Ok(await replayRepository.GetReplays(request, token));
+                return Ok(await replayRepository.GetReplays(request.GetReplaysRequest(), token));
             }
             catch (OperationCanceledException)
             {
@@ -231,5 +231,56 @@ namespace pax.dsstats.web.Server.Controllers.v2
             catch (OperationCanceledException) { }
             return NoContent();
         }
+
+        [HttpGet]
+        [Route("GetServerStats")]
+        public async Task<ActionResult<ServerStatsResponse>> GetServerStats(CancellationToken token)
+        {
+            return await statsService.GetServerStats(token);
+        }
+    }
+}
+
+public record ReplaysRequestV2
+{
+    public List<TableOrder> Orders { get; set; } = new List<TableOrder>() { new TableOrder() { Property = "GameTime" } };
+    public int Skip { get; set; }
+    public int Take { get; set; }
+    public string? Tournament { get; set; }
+    public string? SearchString { get; set; }
+    public string? SearchPlayers { get; set; }
+    public bool LinkSearch { get; set; }
+    public bool ResultAdjusted { get; set; }
+    public string? ReplayHash { get; set; }
+    public bool DefaultFilter { get; set; }
+    public int PlayerCount { get; set; }
+    public List<GameMode> GameModes { get; set; } = new();
+    public bool WithMmrChange { get; set; }
+    public int ToonId { get; set; }
+    public int ToonIdWith { get; set; }
+    public int ToonIdVs { get; set; }
+    public string? ToonIdName { get; set; }
+    public ReplaysRequest GetReplaysRequest()
+    {
+        return new ReplaysRequest()
+        {
+            Orders = Orders,
+            Skip = Skip,
+            Take = Take,
+            Tournament = Tournament,
+            SearchString = SearchString,
+            SearchPlayers = SearchPlayers,
+            LinkSearch= LinkSearch,
+            ResultAdjusted = ResultAdjusted,
+            ReplayHash  = ReplayHash,
+            DefaultFilter = DefaultFilter,
+            PlayerCount = PlayerCount,
+            GameModes = GameModes,
+            WithMmrChange= WithMmrChange,
+            ToonId = ToonId,
+            ToonIdWith = ToonIdWith,
+            ToonIdVs = ToonIdVs,
+            ToonIdName = ToonIdName
+        };
     }
 }

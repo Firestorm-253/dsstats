@@ -82,6 +82,8 @@ public partial class StatsService
         {
             RatingType.Std => 0,
             RatingType.Cmdr => 3,
+            RatingType.StdTE => 0,
+            RatingType.CmdrTE => 3,
             _ => 0
         };
 
@@ -139,20 +141,65 @@ public partial class StatsService
         }).ToList();
     }
 
-    public static IQueryable<Replay> GetRatingReplays(ReplayContext context, RatingType ratingType)
+    private async Task<List<shared.PlayerRatingChange>> GetRatingChanges(List<int> toonIds, CancellationToken token)
+    {
+        DateTime fromDate = DateTime.Today.AddDays(-30);
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+
+        var plchanges = from p in context.Players
+                        from rp in p.ReplayPlayers
+                        where rp.Replay.GameTime > fromDate
+                          && toonIds.Contains(p.ToonId)
+                          && rp.ReplayPlayerRatingInfo != null
+                        group rp.ReplayPlayerRatingInfo by rp.ReplayPlayerRatingInfo.ReplayRatingInfo.RatingType into g
+                        select new shared.PlayerRatingChange
+                        {
+                            RatingType = g.Key,
+                            Count = g.Count(),
+                            Sum = MathF.Round(g.Sum(s => s.RatingChange), 2)
+                        };
+
+        //var changes = from r in context.Replays
+        //          from rpr in r.ReplayRatingInfo.RepPlayerRatings
+        //          from rp in r.ReplayPlayers
+        //          where r.GameTime > DateTime.Today.AddDays(-30)
+        //            && toonIds.Contains(rp.Player.ToonId)
+        //          group rpr by rpr.ReplayRatingInfo.RatingType into g
+        //          select new PlayerRatingChange
+        //          {
+        //              RatingType = g.Key,
+        //              Count = g.Count(),
+        //              Sum = MathF.Round(g.Sum(s => s.RatingChange), 2)
+        //          };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        return await plchanges.ToListAsync(token);
+    }
+
+    private static IQueryable<Replay> GetRatingReplays(ReplayContext context, RatingType ratingType)
     {
         var gameModes = ratingType switch
         {
             RatingType.Cmdr => new List<GameMode>() { GameMode.Commanders, GameMode.CommandersHeroic },
             RatingType.Std => new List<GameMode>() { GameMode.Standard },
+            RatingType.CmdrTE => new List<GameMode>() { GameMode.Commanders },
+            RatingType.StdTE => new List<GameMode>() { GameMode.Standard },
             _ => new List<GameMode>()
         };
+
+        bool te = ratingType switch
+        {
+            RatingType.Cmdr => false,
+            RatingType.Std => false,
+            _ => true
+        };
+
         var playerCount = 6;
 
         return context.Replays
         .Where(r => r.Playercount == playerCount
             && r.Duration >= 300
             && r.WinnerTeam > 0
+            && r.TournamentEdition == te
             && gameModes.Contains(r.GameMode))
         .AsNoTracking();
     }

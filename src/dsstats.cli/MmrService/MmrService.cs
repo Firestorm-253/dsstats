@@ -19,6 +19,8 @@ namespace dsstats.cli.MmrService
 {
     public class MmrService
     {
+        const double startClip = 168;
+
         readonly IServiceProvider serviceProvider;
 
         public MmrService()
@@ -158,14 +160,14 @@ namespace dsstats.cli.MmrService
             }
 
             var mmrIdRatings = await produceService.GetMmrIdRatings(mmrOptions, ratingRepository, dependentReplays);
-            int mmrChangesAppendId = await produceService.GetMmrChangesAppendId(mmrOptions);
+            (int mmrChangesAppendId, var bab) = await produceService.GetMmrChangesAppendId(mmrOptions);
 
             if (mmrOptions.ReCalc)
             {
                 latestReplay = startTime;
             }
 
-            (latestReplay, List<ReplayData> replayDatas) = await produceService.ProduceRatings(mmrOptions, cmdrMmrDic, mmrIdRatings, ratingRepository, mmrChangesAppendId, latestReplay, endTime);
+            (latestReplay, List<ReplayData> replayDatas) = await produceService.ProduceRatings(mmrOptions, cmdrMmrDic, mmrIdRatings, ratingRepository, mmrChangesAppendId, bab, latestReplay, endTime);
 
             await produceService.SaveCommanderMmrsDic(cmdrMmrDic);
             sw.Stop();

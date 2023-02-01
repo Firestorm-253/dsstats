@@ -281,4 +281,29 @@ public partial class DataService : IDataService
             return new();
         }
     }
+
+    public async Task<int> GetRatingChangesCount(RatingChangesRequest request, CancellationToken token)
+    {
+        return await Task.FromResult(0);
+    }
+
+    public async Task<RatingChangesResult> GetRatingChanges(RatingChangesRequest request, CancellationToken token)
+    {
+        return await Task.FromResult(new RatingChangesResult());
+    }
+
+    public async Task<List<PlayerRatingReplayCalcDto>> GetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token)
+    {
+        return await ServerGetToonIdCalcRatings(request, token);
+    }
+
+    public ReplayRatingDto? GetOnlineRating(ReplayDetailsDto replayDto, List<PlayerRatingReplayCalcDto> calcDtos)
+    {
+        return ratingRepository.GetOnlineRating(replayDto, calcDtos);
+    }
+
+    public async Task<CmdrStrengthResult> GetCmdrStrengthResults(CmdrStrengthRequest request, CancellationToken token)
+    {
+        return await Task.FromResult(new CmdrStrengthResult());
+    }
 }

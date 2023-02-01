@@ -8,15 +8,17 @@ namespace dsstats.mmr;
 
 public static partial class MmrService
 {
-    private static void CalculateRatingsDeltas(Dictionary<int, CalcRating> mmrIdRatings,
-                                               ReplayData replayData,
+    const double consistencyBeforePercentage = 0.99;
+    const double confidenceBeforePercentage = 0.99;
+
+
+    private static void CalculateRatingsDeltas(ReplayData replayData,
                                                TeamData teamData,
                                                MmrOptions mmrOptions)
     {
         foreach (var playerData in teamData.Players)
         {
-            var lastPlRating = mmrIdRatings[playerData.MmrId];
-            var playerImpact = GetPlayerImpact(teamData, replayData, lastPlRating, mmrOptions);
+            var playerImpact = GetPlayerImpact(playerData, teamData, replayData, mmrOptions);
 
             if (!playerData.IsLeaver)
             {
@@ -24,9 +26,9 @@ public static partial class MmrService
 
                 SetPlayerDeltas(playerData, teamData, replayData, playerImpact, mmrOptions);
 
-                if (replayData.Maxleaver < 90 && mmrOptions.UseCommanderMmr)
+                if (replayData.ReplayDsRDto.Maxleaver < 90 && mmrOptions.UseCommanderMmr)
                 {
-                    var commandersMmrImpact = (lastPlRating.Mmr / mmrOptions.StartMmr) * lastPlRating.Confidence;
+                    var commandersMmrImpact = (playerData.Mmr / mmrOptions.StartMmr) * playerData.Confidence;
                     playerData.Deltas.CommanderMmr = CalculateMmrDelta(replayData.WinnerTeamData.ExpectedResult, commandersMmrImpact, mmrOptions.EloK);
                 }
 
@@ -71,11 +73,11 @@ public static partial class MmrService
         playerData.Deltas.Confidence = 0;
     }
 
-    private static double GetPlayerImpact(TeamData teamData, ReplayData replayData, CalcRating lastPlRating, MmrOptions mmrOptions)
+    private static double GetPlayerImpact(PlayerData playerData, TeamData teamData, ReplayData replayData, MmrOptions mmrOptions)
     {
-        double factor_playerToTeamMates = PlayerToTeamMates(teamData.Mmr, lastPlRating.Mmr, teamData.Players.Length);
-        double factor_consistency = GetCorrectedRevConsistency(1 - lastPlRating.Consistency);
-        double factor_confidence = GetCorrectedConfidenceFactor(lastPlRating.Confidence, replayData.Confidence);
+        double factor_playerToTeamMates = PlayerToTeamMates(teamData.Mmr, playerData.Mmr, teamData.Players.Length);
+        double factor_consistency = GetCorrectedRevConsistency(1 - playerData.Consistency);
+        double factor_confidence = GetCorrectedConfidenceFactor(playerData.Confidence, replayData.Confidence);
 
         return 1
             * (mmrOptions.UseFactorToTeamMates ? factor_playerToTeamMates : 1.0)
@@ -133,53 +135,46 @@ public static partial class MmrService
         List<RepPlayerRatingDto> ratings = new();
         foreach (var player in teamData.Players)
         {
-            var currentPlayerRating = mmrIdRatings[player.MmrId];
-
-            double mmrBefore = currentPlayerRating.Mmr;
-            double consistencyBefore = currentPlayerRating.Consistency;
-            double confidenceBefore = currentPlayerRating.Confidence;
-
-            double mmrAfter = mmrBefore + player.Deltas.Mmr;
-            const double consistencyBeforePercentage = 0.99;
-            double consistencyAfter = ((consistencyBefore * consistencyBeforePercentage) + (player.Deltas.Consistency * (1 - consistencyBeforePercentage)));
+            double mmrAfter = player.Mmr + player.Deltas.Mmr;
+            double consistencyAfter = ((player.Consistency * consistencyBeforePercentage) + (player.Deltas.Consistency * (1 - consistencyBeforePercentage)));
 
             UpdateConfidenceDatas(currentPlayerRating, teamData);
             double confidenceAfter = GetConfidenceAfter(currentPlayerRating);
 
-
             consistencyAfter = Math.Clamp(consistencyAfter, 0, 1);
             confidenceAfter = Math.Clamp(confidenceAfter, 0, 1);
-            //mmrAfter = Math.Max(1, mmrAfter);
+
+            var currentPlayerRating = mmrIdRatings[player.MmrId];
 
             ratings.Add(new()
             {
-                GamePos = player.GamePos,
+                GamePos = player.ReplayPlayer.GamePos,
                 Rating = MathF.Round((float)mmrAfter, 2),
-                RatingChange = MathF.Round((float)(mmrAfter - mmrBefore), 2),
+                RatingChange = MathF.Round((float)(mmrAfter - player.Mmr), 2),
                 Games = currentPlayerRating.Games,
-                Consistency = MathF.Round((float)consistencyBefore, 2),
-                Confidence = MathF.Round((float)confidenceBefore, 2),
-                ReplayPlayerId = player.ReplayPlayerId,
+                Consistency = MathF.Round((float)player.Consistency, 2),
+                Confidence = MathF.Round((float)player.Confidence, 2),
+                ReplayPlayerId = player.ReplayPlayer.ReplayPlayerId,
             });
 
             currentPlayerRating.Consistency = consistencyAfter;
             currentPlayerRating.Confidence = confidenceAfter;
             currentPlayerRating.Games++;
 
-            if (player.PlayerResult == PlayerResult.Win)
+            if (player.ReplayPlayer.PlayerResult == PlayerResult.Win)
             {
                 currentPlayerRating.Wins++;
             }
-            if (player.Kills == maxKills)
+            if (player.ReplayPlayer.Kills == maxKills)
             {
                 currentPlayerRating.Mvp++;
             }
-            if (player.IsUploader)
+            if (player.ReplayPlayer.IsUploader)
             {
                 currentPlayerRating.IsUploader = true;
             }
 
-            currentPlayerRating.SetCmdr(player.Race);
+            currentPlayerRating.SetCmdr(player.ReplayPlayer.Race);
             currentPlayerRating.SetMmr(mmrAfter, gameTime);
         }
         return ratings;

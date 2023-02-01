@@ -7,7 +7,7 @@ public class DataService : IDataService
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<DataService> logger;
-    private readonly string statsController = "api/v2/Stats/";
+    private readonly string statsController = "api/v4/Stats/";
     private readonly string buildsController = "api/v2/Builds/";
     private readonly string ratingController = "api/Ratings/";
 
@@ -586,6 +586,85 @@ public class DataService : IDataService
         catch (Exception ex)
         {
             logger.LogError($"failed getting GameInfo: {ex.Message}");
+        }
+        return new();
+    }
+
+    public async Task<int> GetRatingChangesCount(RatingChangesRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{ratingController}GetRatingChangesCount", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<int>(cancellationToken: token);
+            }
+            else
+            {
+                logger.LogError($"failed getting ratingchangescount: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting ratingChanges count: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<RatingChangesResult> GetRatingChanges(RatingChangesRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{ratingController}GetRatingChanges", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<RatingChangesResult>(cancellationToken: token) ?? new();
+            }
+            else
+            {
+                logger.LogError($"failed getting ratingChanges: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting ratingChanges: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<List<PlayerRatingReplayCalcDto>> GetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token)
+    {
+        return await Task.FromResult(new List<PlayerRatingReplayCalcDto>());
+    }
+
+    public ReplayRatingDto? GetOnlineRating(ReplayDetailsDto replayDto, List<PlayerRatingReplayCalcDto> calcDtos)
+    {
+        return null;
+    }
+
+    public async Task<CmdrStrengthResult> GetCmdrStrengthResults(CmdrStrengthRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{statsController}GetCmdrStrength", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<CmdrStrengthResult>(cancellationToken: token) ?? new();
+            }
+            else
+            {
+                logger.LogError($"failed getting cmdrStrength: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting cmdrStrength: {e.Message}");
         }
         return new();
     }

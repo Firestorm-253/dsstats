@@ -27,16 +27,41 @@ We really like people helping us with the project. Nevertheless, take your time 
 
 ## ChangeLog
 
-<details open="open"><summary>v1.1.2 (web only atm)</summary>
+<details open="open"><summary>v1.1.5 (web only atm)</summary>
+
+>- App (latest)replay live ratings
+>- Commander Strength Bubble Chart
+
+</details>
+
+<details open="open"><summary>v1.1.4</summary>
+
+>- CheatDetect Results
+>- Rating calculation refactoring
+>- Sc2 Patch 5.0.11 - protocol 89634
+
+</details>
+
+<details><summary>v1.1.3</summary>
+
+>- Tournament Edition RatingTypes (Cmdr 3v3 TE, Std 3v3 TE)
+>- Some Info links / tooltips (thx to heyrandompeople)
+>- Replays filter for TE maps
+>- Maui ratings top-row limited to current player
+
+</details>
+
+<details><summary>v1.1.2</summary>
 
 >- [Leaver Handling](https://github.com/ipax77/dsstats/wiki/LeaverHandling) active
 >- TimePeriods refactoring - new TimePeriod "Past 90 Days" is default, now
 >- Std-Teams details ordering fixed
 >- Replay Rating Info
+>- Player rating changes (past 24h, 10 days, 30 days)
 
 </details>
 
-<details open="open"><summary>v1.1.1</summary>
+<details><summary>v1.1.1</summary>
 
 >- Fix Ocr temp image path
 

@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using dsstats.mmr;
-using dsstats.mmr.ProcessData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,7 +22,7 @@ public partial class MmrProduceService
         this.logger = logger;
     }
 
-    public async Task<List<ReplayData>> ProduceRatings(MmrOptions mmrOptions,
+    public async Task ProduceRatings(MmrOptions mmrOptions,
                                         DateTime latestReplay = default,
                                         List<ReplayDsRDto>? dependentReplays = null,
                                         DateTime startTime = default,
@@ -53,20 +52,18 @@ public partial class MmrProduceService
             latestReplay = startTime;
         }
 
-        (latestReplay, List<ReplayData> replayDatas) = await ProduceRatings(mmrOptions,
-                                                                            cmdrMmrDic,
-                                                                            mmrIdRatings,
-                                                                            ratingRepository,
-                                                                            replayRatingAppendId,
-                                                                            replayPlayerAppendId,
-                                                                            latestReplay,
-                                                                            endTime);
+        latestReplay = await ProduceRatings(mmrOptions,
+                                            cmdrMmrDic,
+                                            mmrIdRatings,
+                                            ratingRepository,
+                                            replayRatingAppendId,
+                                            replayPlayerAppendId,
+                                            latestReplay,
+                                            endTime);
 
         await SaveCommanderMmrsDic(cmdrMmrDic);
         sw.Stop();
         logger.LogWarning($"ratings produced in {sw.ElapsedMilliseconds} ms");
-
-        return replayDatas;
     }
 
 
@@ -96,8 +93,8 @@ public partial class MmrProduceService
         }
     }
 
-    public async Task<(DateTime, List<ReplayData>)> ProduceRatings(MmrOptions mmrOptions,
-                                         Dictionary<CmdrMmmrKey, CmdrMmmrValue> cmdrMmrDic,
+    public async Task<DateTime> ProduceRatings(MmrOptions mmrOptions,
+                                         Dictionary<CmdrMmrKey, CmdrMmrValue> cmdrMmrDic,
                                          Dictionary<RatingType, Dictionary<int, CalcRating>> mmrIdRatings,
                                          IRatingRepository ratingRepository,
                                          int replayRatingAppendId,
@@ -105,8 +102,6 @@ public partial class MmrProduceService
                                          DateTime startTime = default,
                                          DateTime endTime = default)
     {
-        var allReplayDatas = new List<ReplayData>();
-
         DateTime _startTime = startTime == DateTime.MinValue ? new DateTime(2018, 1, 1) : startTime;
         DateTime _endTime = endTime == DateTime.MinValue ? DateTime.Today.AddDays(2) : endTime;
 
@@ -148,24 +143,28 @@ public partial class MmrProduceService
 
             request.ReplayRatingAppendId = calcResult.ReplayRatingAppendId;
             request.ReplayPlayerRatingAppendId = calcResult.ReplayPlayerRatingAppendId;
-
-            allReplayDatas.AddRange(calcResult.ReplayData);
         }
 
         var result = await ratingRepository.UpdateRavenPlayers(mmrIdRatings, !mmrOptions.ReCalc);
 
-        return (latestReplay, allReplayDatas);
+        return latestReplay;
     }
 
     public async Task<Dictionary<RatingType, Dictionary<int, CalcRating>>> GetMmrIdRatings(MmrOptions mmrOptions, IRatingRepository ratingRepository, List<ReplayDsRDto>? dependentReplays)
     {
         if (mmrOptions.ReCalc || dependentReplays == null)
         {
-            return new Dictionary<RatingType, Dictionary<int, CalcRating>>()
+            Dictionary<RatingType, Dictionary<int, CalcRating>> calcRatings = new();
+
+            foreach (RatingType ratingType in Enum.GetValues(typeof(RatingType)))
             {
-                { RatingType.Cmdr, new() },
-                { RatingType.Std, new() },
-            };
+                if (ratingType == RatingType.None)
+                {
+                    continue;
+                }
+                calcRatings[ratingType] = new();
+            }
+            return calcRatings;
         }
         else
         {
@@ -207,7 +206,7 @@ public partial class MmrProduceService
             .ToListAsync();
     }
 
-    public async Task SaveCommanderMmrsDic(Dictionary<CmdrMmmrKey, CmdrMmmrValue> cmdrMmrDic)
+    public async Task SaveCommanderMmrsDic(Dictionary<CmdrMmrKey, CmdrMmrValue> cmdrMmrDic)
     {
         using var scope = serviceProvider.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
@@ -237,7 +236,7 @@ public partial class MmrProduceService
         await context.SaveChangesAsync();
     }
 
-    public async Task<Dictionary<CmdrMmmrKey, CmdrMmmrValue>> GetCommanderMmrsDic(MmrOptions mmrOptions, bool clean)
+    public async Task<Dictionary<CmdrMmrKey, CmdrMmrValue>> GetCommanderMmrsDic(MmrOptions mmrOptions, bool clean)
     {
         if (clean)
         {
@@ -274,14 +273,14 @@ public partial class MmrProduceService
             context.CommanderMmrs.AddRange(cmdrMmrs);
             await context.SaveChangesAsync();
         }
-        return cmdrMmrs.ToDictionary(k => new CmdrMmmrKey(k.Race, k.OppRace), v => new CmdrMmmrValue()
+        return cmdrMmrs.ToDictionary(k => new CmdrMmrKey(k.Race, k.OppRace), v => new CmdrMmrValue()
         {
             SynergyMmr = v.SynergyMmr,
             AntiSynergyMmr = v.AntiSynergyMmr
         });
     }
 
-    public Dictionary<CmdrMmmrKey, CmdrMmmrValue> GetCleanCommnaderMmrsDic(MmrOptions mmrOptions)
+    public Dictionary<CmdrMmrKey, CmdrMmrValue> GetCleanCommnaderMmrsDic(MmrOptions mmrOptions)
     {
         List<CommanderMmr> cmdrMmrs = new();
 
@@ -303,7 +302,7 @@ public partial class MmrProduceService
             }
         }
 
-        return cmdrMmrs.ToDictionary(k => new CmdrMmmrKey(k.Race, k.OppRace), v => new CmdrMmmrValue()
+        return cmdrMmrs.ToDictionary(k => new CmdrMmrKey(k.Race, k.OppRace), v => new CmdrMmrValue()
         {
             SynergyMmr = v.SynergyMmr,
             AntiSynergyMmr = v.AntiSynergyMmr

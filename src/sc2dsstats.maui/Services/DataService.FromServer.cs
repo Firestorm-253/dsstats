@@ -7,7 +7,7 @@ namespace sc2dsstats.maui.Services;
 
 public partial class DataService
 {
-    private readonly string statsController = "api/v2/Stats/";
+    private readonly string statsController = "api/v3/Stats/";
     private readonly string buildsController = "api/v2/Builds/";
     private readonly string ratingController = "api/Ratings/";
 
@@ -410,6 +410,28 @@ public partial class DataService
         catch (Exception ex)
         {
             logger.LogError($"failed getting toonIdRatings: {ex.Message}");
+        }
+        return new();
+    }
+
+    public async Task<List<PlayerRatingReplayCalcDto>> ServerGetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token)
+    {
+        try
+        {
+            var result = await httpClient.PostAsJsonAsync($"{ratingController}GetToonIdCalcRatings", request);
+            if (result.IsSuccessStatusCode)
+            {
+                var toonIdRatingResponse = await result.Content.ReadFromJsonAsync<List<PlayerRatingReplayCalcDto>>();
+                if (toonIdRatingResponse != null)
+                {
+                    return toonIdRatingResponse;
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            logger.LogError($"failed getting toonIdCalcRatings: {ex.Message}");
         }
         return new();
     }

@@ -60,7 +60,9 @@ public enum RatingType
 {
     None = 0,
     Cmdr = 1,
-    Std = 2
+    Std = 2,
+    CmdrTE = 3,
+    StdTE = 4
 }
 
 public enum TimePeriod
@@ -84,4 +86,12 @@ public enum LeaverType
     OneEachTeam = 2,
     TwoSameTeam = 3,
     MoreThanTwo = 4
+}
+
+public enum RatingChangeTimePeriod
+{
+    None = 0,
+    Past24h = 1,
+    Past10Days = 2,
+    Past30Days = 3
 }
