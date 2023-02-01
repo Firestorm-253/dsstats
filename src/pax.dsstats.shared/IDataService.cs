@@ -13,6 +13,7 @@ public interface IDataService
     Task<StatsResponse> GetStats(StatsRequest request, CancellationToken token = default);
     Task<StatsResponse> GetTourneyStats(StatsRequest request, CancellationToken token = default);
     Task<BuildResponse> GetBuild(BuildRequest request, CancellationToken token = default);
+    Task<CmdrStrengthResult> GetCmdrStrengthResults(CmdrStrengthRequest request, CancellationToken token);
 
     // ratings
     Task<int> GetRatingsCount(RatingsRequest request, CancellationToken token);
@@ -23,6 +24,8 @@ public interface IDataService
     Task<PlayerDetailsResult> GetPlayerDetailsNg(int toonId, int rating, CancellationToken token);
     Task<PlayerDetailsGroupResult> GetPlayerGroupDetails(int toonId, int rating, CancellationToken token);
     Task<List<PlayerMatchupInfo>> GetPlayerMatchups(int toonId, int ratingType, CancellationToken token);
+    Task<List<PlayerRatingReplayCalcDto>> GetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token);
+    ReplayRatingDto? GetOnlineRating(ReplayDetailsDto replayDto, List<PlayerRatingReplayCalcDto> calcDtos);
     //Task<List<RavenPlayerDto>> GetPlayerRatings(int toonId);
     Task<List<RequestNames>> GetTopPlayers(bool std);
 
