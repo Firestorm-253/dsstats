@@ -110,7 +110,7 @@ public record CalcRating
 public record ConfidenceData
 {
     public double AvgExpectationToWin { get; init; }
-    public int Wins { get; init; }
+    public double Winrate { get; init; }
     public int Games { get; init; }
 }
 

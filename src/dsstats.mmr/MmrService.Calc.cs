@@ -183,19 +183,18 @@ public static partial class MmrService
     const double gamesRange = 100;
     private static void UpdateConfidenceDatas(CalcRating currentPlayerRating, TeamData teamData)
     {
-        //double gamesRangePerPercentage = gamesRange / currentPlayerRating.ConfidenceDatas.Count;
+        double factorNew = (1 / (gamesRange / currentPlayerRating.ConfidenceDatas.Count));
+
         double key = Math.Round(teamData.ExpectedResult, 1);
 
         int gamesAfter = currentPlayerRating.ConfidenceDatas[key].Games + 1;
-        int winsAfter = currentPlayerRating.ConfidenceDatas[key].Wins + teamData.ActualResult;
-        
-        double avgExpectationToWinAfter = ((currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * currentPlayerRating.ConfidenceDatas[key].Games) + teamData.ExpectedResult) / gamesAfter;
-        //double avgExpectationToWinAfter = (currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * (1 - (1 / gamesRangePerPercentage))) + ((1 / gamesRangePerPercentage) * teamData.ExpectedResult);
-        
+        double winrateAfter = (currentPlayerRating.ConfidenceDatas[key].Winrate * (1 - factorNew)) + (factorNew * teamData.ActualResult);
+        double avgExpectationToWinAfter = (currentPlayerRating.ConfidenceDatas[key].AvgExpectationToWin * (1 - factorNew)) + (factorNew * teamData.ExpectedResult);
+
         currentPlayerRating.ConfidenceDatas[key] = new ConfidenceData()
         {
             AvgExpectationToWin = avgExpectationToWinAfter,
-            Wins = winsAfter,
+            Winrate = winrateAfter,
             Games = gamesAfter
         };
     }
@@ -214,7 +213,7 @@ public static partial class MmrService
 
             double impact = ent.Value.Games / (double)totalGames;
 
-            double winrate = ent.Value.Wins / (double)ent.Value.Games;
+            double winrate = ent.Value.Winrate;
             double avgExpectationToWin = ent.Value.AvgExpectationToWin;
 
             confidenceLoss += impact * Math.Abs(winrate - avgExpectationToWin);
