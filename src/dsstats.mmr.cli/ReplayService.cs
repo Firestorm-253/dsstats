@@ -23,7 +23,7 @@ public static class ReplayService
         return jsonReplays;
     }
 
-    public static List<ReplayData> ProduceRatings(List<ReplayDsRDto> replays, MmrOptions mmrOptions)
+    public static (Dictionary<int, CalcRating>, List<ReplayData>) ProduceRatings(List<ReplayDsRDto> replays, MmrOptions mmrOptions)
     {
         var replayDatas = new List<ReplayData>();
         var mmrIdRatings = new Dictionary<int, CalcRating>();
@@ -48,7 +48,7 @@ public static class ReplayService
             replayDatas.Add(replayData);
         }
 
-        return replayDatas;
+        return (mmrIdRatings, replayDatas);
     }
 
     public static void SetReplayData(ReplayData replayData,

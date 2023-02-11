@@ -15,7 +15,7 @@ public static class Tests
     public static List<(double, double, double, double)> DerivationTest(List<ReplayDsRDto> replayDsRDtos)
     {
         const double startClip = 168;
-        double clip = 20000; //startClip;
+        double clip = 1600; //startClip;
         double realAccuracy = 0;
         double loss = double.MaxValue;
         // double loss_d;
@@ -29,9 +29,11 @@ public static class Tests
             //replayDsRDtos = replayDsRDtos.Where(x => x.ReplayPlayers.Any(x => x.Player.Name == "Kragh")).ToList();
             
             Stopwatch sw = Stopwatch.StartNew();
-            var replayDatas = ReplayService.ProduceRatings(replayDsRDtos, new MmrOptions(true, startClip, clip));
+            var (mmrIdRatings, replayDatas) = ReplayService.ProduceRatings(replayDsRDtos, new MmrOptions(true, startClip, clip));
             sw.Stop();
             var miliseconds = sw.ElapsedMilliseconds;
+
+            //var sd = GetDeviationOfRatings(mmrIdRatings);
 
             //var aot = GetAccuracyOverTime(GetAccuracyOverTime(replayDatas));
             var aoga = GetAccuracyOverGamesAmount(replayDatas);
@@ -57,6 +59,38 @@ public static class Tests
         Program.WriteToCsv("table.csv", dic.ToArray());
 
         return results;
+    }
+
+    public static double GetDeviationOfRatings(Dictionary<int, CalcRating> mmrIdRatings)
+    {
+        //var ordered = mmrIdRatings.OrderBy(x => x.Value.Mmr);
+        double mean = mmrIdRatings.Average(x => x.Value.Mmr);
+
+
+        //var take_02_1 = ordered.Skip((int)(ordered.Count() * 0.001)).Take((int)(ordered.Count() * 0.021)).ToArray();
+        //var take_13_6 = ordered.Skip((int)(ordered.Count() * 0.022)).Take((int)(ordered.Count() * 0.136)).ToArray();
+        //var take_34_1 = ordered.Skip((int)(ordered.Count() * 0.159)).Take((int)(ordered.Count() * 0.341)).ToArray();
+        
+        //var _3sd = take_13_6.First().Value.Mmr;
+        //var _2sd = take_13_6.First().Value.Mmr;
+        //var _1sd = take_34_1.First().Value.Mmr;
+        //var _0 = take_34_1.Last().Value.Mmr;
+
+        //var sd
+        //    = ((_0 - _1sd)
+        //    + (_0 - _2sd)
+        //    + (_0 - _3sd))
+        //    / 6;
+
+
+        double sum = 0;
+        foreach (var ent in mmrIdRatings)
+        {
+            sum += Math.Pow(ent.Value.Mmr - mean, 2);
+        }
+
+        double sd_squared = sum / mmrIdRatings.Count;
+        return Math.Sqrt(sd_squared);
     }
 
     public static Dictionary<int, double> GetAccuracyOverGamesAmount(List<ReplayData> replayDatas)
