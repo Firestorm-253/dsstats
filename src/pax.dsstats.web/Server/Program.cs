@@ -140,3 +140,21 @@ app.MapHub<PickBanHub>("/hubs/pickban");
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+
+
+
+static async Task<StatsResponseItem[]> GetSynergies(IStatsService statsService, Commander cmdr)
+{
+    var synergies = await statsService.GetStatsResponse(new()
+    {
+        StatsMode = StatsMode.Synergy,
+        Interest = cmdr,
+        TimePeriod = TimePeriod.Past90Days,
+        DefaultFilter = true,
+        GameModes = { GameMode.Commanders, GameMode.CommandersHeroic },
+        Uploaders = false
+    });
+
+    return synergies.Items.OrderByDescending(_ => _.Winrate).ToArray();
+}
