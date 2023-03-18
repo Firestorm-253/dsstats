@@ -103,15 +103,107 @@ if (app.Environment.IsProduction())
 // DEBUG
 if (app.Environment.IsDevelopment())
 {
-    // var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
-    // mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
+    var statsService = scope.ServiceProvider.GetRequiredService<IStatsService>();
 
-    // var statsService = scope.ServiceProvider.GetRequiredService<IStatsService>();
-    // var list = statsService.GetCmdrPlayerInfos(new()).GetAwaiter().GetResult();
-    // foreach (var l in list)
-    // {
-    //     Console.WriteLine(l);
-    // }
+    var cmdrsSynergies = new Dictionary<Commander, StatsResponseItem[]>();
+    for (int i = 10; i <= 170; i += 10)
+    {
+        var cmdr = (Commander)i;
+        var synergies = GetSynergies(statsService, cmdr).GetAwaiter().GetResult();
+        cmdrsSynergies.Add(cmdr, synergies);
+    }
+
+    var allSynergies = new Dictionary<(Commander, Commander), (double, int)>();
+    foreach (var ent_1 in cmdrsSynergies)
+    {
+        foreach (var synergy in ent_1.Value)
+        {
+            if (allSynergies.ContainsKey((ent_1.Key, synergy.Cmdr)) || allSynergies.ContainsKey((synergy.Cmdr, ent_1.Key)))
+            {
+                continue;
+            }
+
+            allSynergies.Add((ent_1.Key, synergy.Cmdr), (synergy.Winrate, synergy.Matchups));
+        }
+    }
+
+    for (int a = 10; a <= 170; a += 10)
+    {
+        var cmdr_a = (Commander)a;
+
+        for (int b = 10; b <= 170; b += 10)
+        {
+            var cmdr_b = (Commander)b;
+
+            for (int c = 10; c <= 170; c += 10)
+            {
+                var cmdr_c = (Commander)c;
+
+
+            }
+        }
+    }
+
+
+    var synergies3x = new Dictionary<(Commander, Commander, Commander), double>();
+    foreach (var synergy_a in allSynergies)
+    {
+        if (synergy_a.Key.Item1 == synergy_a.Key.Item2)
+        {
+            continue;
+        }
+
+        foreach (var synergy_b in allSynergies)
+        {
+            if (synergy_a.Key == synergy_b.Key)
+            {
+                continue;
+            }
+            if (synergy_b.Key.Item1 == synergy_b.Key.Item2)
+            {
+                continue;
+            }
+
+            foreach (var synergy_c in allSynergies)
+            {
+                if (synergy_b.Key == synergy_c.Key || synergy_a.Key == synergy_c.Key)
+                {
+                    continue;
+                }
+                if (synergy_c.Key.Item1 == synergy_c.Key.Item2)
+                {
+                    continue;
+                }
+
+                var cmdrs = new HashSet<Commander>()
+                {
+                    synergy_a.Key.Item1,
+                    synergy_a.Key.Item2,
+                    synergy_b.Key.Item1,
+                    synergy_b.Key.Item2,
+                    synergy_c.Key.Item1,
+                    synergy_c.Key.Item2,
+                }.ToArray();
+
+                if (cmdrs.Length == 3)
+                {
+                    var avgWinrate = (synergy_a.Value.Item1 + synergy_b.Value.Item1 + synergy_c.Value.Item1) / 3;
+
+                    if (!(synergies3x.ContainsKey((cmdrs[0], cmdrs[1], cmdrs[2])) ||
+                        synergies3x.ContainsKey((cmdrs[0], cmdrs[2], cmdrs[1])) ||
+                        synergies3x.ContainsKey((cmdrs[1], cmdrs[0], cmdrs[2])) ||
+                        synergies3x.ContainsKey((cmdrs[1], cmdrs[2], cmdrs[0])) ||
+                        synergies3x.ContainsKey((cmdrs[2], cmdrs[0], cmdrs[1])) ||
+                        synergies3x.ContainsKey((cmdrs[2], cmdrs[1], cmdrs[0]))))
+                    {
+                        synergies3x.Add((cmdrs[0], cmdrs[1], cmdrs[2]), avgWinrate);
+                    }
+                }
+            }
+        }
+    }
+
+    var ordered = synergies3x.OrderByDescending(x => x.Value).Select(x => $"{Math.Round(x.Value)}% -> {x.Key.Item1} & {x.Key.Item2} & {x.Key.Item3}").ToArray();
 }
 
 // Configure the HTTP request pipeline.
