@@ -127,23 +127,6 @@ if (app.Environment.IsDevelopment())
         }
     }
 
-    for (int a = 10; a <= 170; a += 10)
-    {
-        var cmdr_a = (Commander)a;
-
-        for (int b = 10; b <= 170; b += 10)
-        {
-            var cmdr_b = (Commander)b;
-
-            for (int c = 10; c <= 170; c += 10)
-            {
-                var cmdr_c = (Commander)c;
-
-
-            }
-        }
-    }
-
 
     var synergies3x = new Dictionary<(Commander, Commander, Commander), double>();
     foreach (var synergy_a in allSynergies)
