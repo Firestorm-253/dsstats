@@ -128,7 +128,7 @@ if (app.Environment.IsDevelopment())
     }
 
 
-    var synergies3x = new Dictionary<(Commander, Commander, Commander), double>();
+    var synergies3x = new Dictionary<(Commander, Commander, Commander), (double, int)>();
     foreach (var synergy_a in allSynergies)
     {
         if (synergy_a.Key.Item1 == synergy_a.Key.Item2)
@@ -170,7 +170,12 @@ if (app.Environment.IsDevelopment())
 
                 if (cmdrs.Length == 3)
                 {
-                    var avgWinrate = (synergy_a.Value.Item1 + synergy_b.Value.Item1 + synergy_c.Value.Item1) / 3;
+                    var summedGames = (synergy_a.Value.Item2 + synergy_b.Value.Item2 + synergy_c.Value.Item2);
+                    var avgWinrate = (
+                        (synergy_a.Value.Item1 * synergy_a.Value.Item2) +
+                        (synergy_b.Value.Item1 * synergy_b.Value.Item2) +
+                        (synergy_c.Value.Item1 * synergy_c.Value.Item2)
+                        ) / summedGames;
 
                     if (!(synergies3x.ContainsKey((cmdrs[0], cmdrs[1], cmdrs[2])) ||
                         synergies3x.ContainsKey((cmdrs[0], cmdrs[2], cmdrs[1])) ||
@@ -179,14 +184,14 @@ if (app.Environment.IsDevelopment())
                         synergies3x.ContainsKey((cmdrs[2], cmdrs[0], cmdrs[1])) ||
                         synergies3x.ContainsKey((cmdrs[2], cmdrs[1], cmdrs[0]))))
                     {
-                        synergies3x.Add((cmdrs[0], cmdrs[1], cmdrs[2]), avgWinrate);
+                        synergies3x.Add((cmdrs[0], cmdrs[1], cmdrs[2]), (avgWinrate, summedGames));
                     }
                 }
             }
         }
     }
 
-    var ordered = synergies3x.OrderByDescending(x => x.Value).Select(x => $"{Math.Round(x.Value)}% -> {x.Key.Item1} & {x.Key.Item2} & {x.Key.Item3}").ToArray();
+    var ordered = synergies3x.OrderByDescending(x => x.Value).Select(x => $"{Math.Round(x.Value.Item1)}% ({x.Value.Item2}) -> {x.Key.Item1} & {x.Key.Item2} & {x.Key.Item3}").ToArray();
 }
 
 // Configure the HTTP request pipeline.
