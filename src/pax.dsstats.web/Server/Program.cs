@@ -242,7 +242,7 @@ static async Task<StatsResponseItem[]> GetSynergies(IStatsService statsService, 
     {
         StatsMode = StatsMode.Synergy,
         Interest = cmdr,
-        TimePeriod = TimePeriod.Past90Days,
+        TimePeriod = TimePeriod.Patch2_71,
         DefaultFilter = true,
         GameModes = { GameMode.Commanders, GameMode.CommandersHeroic },
         Uploaders = false
