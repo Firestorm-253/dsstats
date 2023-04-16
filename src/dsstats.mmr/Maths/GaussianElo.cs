@@ -4,6 +4,7 @@ namespace dsstats.mmr.Maths;
 
 public static class GaussianElo
 {
+    private const double zScore = 3;
     public static Gaussian GetRatingAfter(Gaussian rating,
                                           int actualResult,
                                           double prediction,
@@ -11,7 +12,11 @@ public static class GaussianElo
                                           double playerImpact,
                                           MmrOptions mmrOptions)
     {
-        double delta = (actualResult - prediction) * mmrOptions.EloK * playerImpact;
+        double sign = (actualResult == 1) ? 1 : -1;
+
+        double matchGoal = (zScore * matchDist.Deviation);
+        double matchDelta = matchGoal + (matchDist.Mean * sign);
+        double delta = Math.Max(0, (matchDelta / 6/*totalPlayerAmount*/)) * playerImpact * sign;
 
         var info = Gaussian.ByMeanDeviation(rating.Mean + delta, matchDist.Deviation);
         var ratingAfter = rating * info;
