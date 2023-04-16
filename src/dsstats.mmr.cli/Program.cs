@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text;
 using CsvHelper;
+using pax.dsstats.shared;
 
 namespace dsstats.mmr.cli;
 

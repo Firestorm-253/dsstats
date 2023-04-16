@@ -14,8 +14,6 @@ public static class Tests
 {
     public static List<(double, double, double, double)> DerivationTest(List<ReplayDsRDto> replayDsRDtos)
     {
-        const double startClip = 168;
-        double clip = 1600; //startClip;
         double realAccuracy = 0;
         double loss = double.MaxValue;
         // double loss_d;
@@ -29,7 +27,7 @@ public static class Tests
             //replayDsRDtos = replayDsRDtos.Where(x => x.ReplayPlayers.Any(x => x.Player.Name == "Kragh")).ToList();
             
             Stopwatch sw = Stopwatch.StartNew();
-            var (mmrIdRatings, replayDatas) = ReplayService.ProduceRatings(replayDsRDtos, new MmrOptions(true, startClip, clip));
+            var (mmrIdRatings, replayDatas) = ReplayService.ProduceRatings(replayDsRDtos, new MmrOptions(true));
             sw.Stop();
             var miliseconds = sw.ElapsedMilliseconds;
 
@@ -38,7 +36,7 @@ public static class Tests
             //var aot = GetAccuracyOverTime(GetAccuracyOverTime(replayDatas));
             var aoga = GetAccuracyOverGamesAmount(replayDatas);
 
-            //dic.Add(clip, aoga.Select(x => (x.Key, x.Value)).ToArray());
+            //dic.Add(aoga.Select(x => (x.Key, x.Value)).ToArray());
 
 
             //if (dic.Count == 6)
@@ -46,14 +44,12 @@ public static class Tests
             //    Program.WriteToCsv_V2("table.csv", dic.ToArray());
             //}
 
-            //realAccuracy = replayDatas.Count(x => x.CorrectPrediction) / (double)replayDatas.Count;
+            realAccuracy = replayDatas.Count(x => x.CorrectPrediction) / (double)replayDatas.Count;
 
-            //loss = Loss.GetLoss(clip, replayRatings);
-            ////loss_d = Loss.GetLoss_d(clip, replayRatings.ToArray());
+            //loss = Loss.GetLoss(replayRatings);
+            ////loss_d = Loss.GetLoss_d(replayRatings.ToArray());
 
-            //results.Add((clip, realAccuracy, loss, 0/*-loss_d*/));
-
-            clip += 500;//-loss_d * startClip;
+            //results.Add((realAccuracy, loss, 0/*-loss_d*/));
         } while (loss > 0);
 
         Program.WriteToCsv("table.csv", dic.ToArray());
@@ -130,8 +126,8 @@ public static class Tests
 
         foreach (var replayData in replayDatas)
         {
-            int year = replayData.GameTime.Year;
-            int month = replayData.GameTime.Month;
+            int year = replayData.ReplayDsRDto.GameTime.Year;
+            int month = replayData.ReplayDsRDto.GameTime.Month;
 
             var key = new DateTime(year, month, 1);
             if (!amountOverTime.ContainsKey(key))

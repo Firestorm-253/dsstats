@@ -1,6 +1,7 @@
 using pax.dsstats.shared;
 
 namespace dsstats.mmr.cli.ProcessData;
+using Maths;
 
 public record TeamData
 {
@@ -16,21 +17,6 @@ public record TeamData
             IsTeam1 = replayPlayers.ElementAt(0).Team == 1;
         }
     }
-    public TeamData(bool isWinner,
-                    double mmr,
-                    double confidence,
-                    double cmdrComboMmr,
-                    double expectedResult,
-                    PlayerData[] players)
-    {
-        IsWinner = isWinner;
-        ActualResult = isWinner ? 1 : 0;
-        Mmr = mmr;
-        Confidence = confidence;
-        CmdrComboMmr = cmdrComboMmr;
-        ExpectedResult = expectedResult;
-        Players = players;
-    }
 
     public bool IsTeam1 { get; init; }
     public PlayerData[] Players { get; init; }
@@ -38,9 +24,13 @@ public record TeamData
     public bool IsWinner { get; init; }
     public int ActualResult { get; init; }
 
-    public double Mmr { get; set; }
-    public double Confidence { get; set; }
-    public double CmdrComboMmr { get; set; }
+    public double Mmr => Distribution.Mean;
+    public double Deviation => Distribution.Deviation;
+    public double Confidence => Distribution.Precision;
+    //public double CmdrComboMmr { get; set; }
+
+    public Gaussian Distribution { get; set; }
+    public Gaussian Prediction { get; set; }
 
     public double ExpectedResult { get; set; }
 }
