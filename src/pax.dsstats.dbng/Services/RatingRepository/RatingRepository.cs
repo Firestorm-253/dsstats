@@ -3,6 +3,7 @@ using dsstats.mmr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using pax.dsstats.shared;
 
 namespace pax.dsstats.dbng.Services;
@@ -11,12 +12,17 @@ public partial class RatingRepository : IRatingRepository
 {
     private readonly IServiceScopeFactory scopeFactory;
     private readonly IMapper mapper;
+    private readonly IOptions<DbImportOptions> dbImportOptions;
     private readonly ILogger<RatingRepository> logger;
 
-    public RatingRepository(IServiceScopeFactory scopeFactory, IMapper mapper, ILogger<RatingRepository> logger)
+    public RatingRepository(IServiceScopeFactory scopeFactory,
+                            IMapper mapper,
+                            IOptions<DbImportOptions> dbImportOptions,
+                            ILogger<RatingRepository> logger)
     {
         this.scopeFactory = scopeFactory;
         this.mapper = mapper;
+        this.dbImportOptions = dbImportOptions;
         this.logger = logger;
     }
 
@@ -25,8 +31,7 @@ public partial class RatingRepository : IRatingRepository
         return new CalcRating()
         {
             IsUploader = ravenPlayer.IsUploader,
-            Confidence = ravenRating?.Confidence ?? 0,
-            Consistency = ravenRating?.Consistency ?? 0,
+            Deviation = ravenRating?.Deviation ?? 0,
             Games = ravenRating?.Games ?? 0,
             TeamGames = ravenRating?.TeamGames ?? 0,
             Wins = ravenRating?.Wins ?? 0,
@@ -62,12 +67,7 @@ public partial class RatingRepository : IRatingRepository
 
         return await context.Players
             .Where(x => x.Name == name)
-            .Select(s => new RequestNames()
-            {
-                Name = s.Name,
-                ToonId = s.ToonId,
-                RegionId = s.RegionId
-            })
+            .Select(s => new RequestNames(s.Name, s.ToonId, s.RegionId, s.RealmId))
             .ToListAsync();
 
         //return RatingMemory.Values
@@ -172,12 +172,7 @@ public partial class RatingRepository : IRatingRepository
 
         return await context.Players
             .Where(x => x.ToonId == toonId)
-            .Select(s => new RequestNames()
-            {
-                Name = s.Name,
-                ToonId = toonId,
-                RegionId = s.RegionId,
-            })
+            .Select(s => new RequestNames(s.Name, s.ToonId, s.RegionId, s.RealmId))
             .FirstOrDefaultAsync();
     }
 
@@ -191,12 +186,7 @@ public partial class RatingRepository : IRatingRepository
                 && x.Games >= minGames)
             .OrderByDescending(o => o.Rating)
             .Take(5)
-            .Select(s => new RequestNames()
-            {
-                Name = s.Player.Name,
-                ToonId = s.Player.ToonId,
-                RegionId = s.Player.RegionId
-            })
+            .Select(s => new RequestNames(s.Player.Name, s.Player.ToonId, s.Player.RegionId, s.Player.RealmId))
             .ToListAsync();
     }
 
@@ -240,6 +230,8 @@ public partial class RatingRepository : IRatingRepository
                 await MysqlUpdateRavenPlayers(mmrIdRatings);
             }
             await Csv2MySql(continueCalc, csvBasePath);
+            await SetPlayerRatingsPos();
+            await SetRatingChange();
         }
         return new();
     }

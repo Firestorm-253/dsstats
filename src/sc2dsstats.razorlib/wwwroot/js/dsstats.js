@@ -1,3 +1,4 @@
+//v 1.1
 
 const cmdrIconsMap = new Map();
 
@@ -61,6 +62,11 @@ function registerImagePlugin(xWidth, yWidth) {
     preloadChartIcons(xWidth, yWidth);
 }
 
+function registerbubbleLabelsPlugin() {
+    const bubbleLabels = bubbleLabelsPlugin();
+    Chart.register(bubbleLabels);
+}
+
 function preloadChartIcons(xWidth, yWidth) {
     if (cmdrIconsMap.size > 0) {
         return;
@@ -80,7 +86,7 @@ function barIconsPlugin() {
         id: 'barIcons',
         // beforeDraw(chart, args, options) {
         afterDatasetDraw(chart, args, options) {
-        // afterDraw(chart, args, options) {
+            // afterDraw(chart, args, options) {
             const { ctx, chartArea: { top, right, bottom, left, width, height }, scales: { x, y } } = chart;
 
             ctx.save();
@@ -148,4 +154,129 @@ function scrollToId(id) {
     if (ele != undefined) {
         ele.scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+
+function bubbleLabelsPlugin() {
+    const fontSize = Chart.defaults.font.size;
+
+    return {
+        id: 'bubbleLabelsPlugin',
+        afterDatasetsDraw: (chart, args, options) => {
+            const ctx = chart.ctx
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+
+            chart.data.datasets.forEach((dataset, i) => {
+                const meta = chart.getDatasetMeta(i)
+                if (meta.type !== 'bubble') return
+
+                meta.data.forEach((element, index) => {
+                    const item = dataset.data[index]
+                    const position = element.tooltipPosition()
+                    ctx.fillStyle = "#3F5FFA";
+                    ctx.fillText(item.label.toString(), position.x, position.y - item.r - fontSize)
+                })
+            })
+        },
+    }
+}
+
+function bubblePointHover(chartId, index) {
+    const chart = Chart.getChart(chartId);
+
+    if (chart.data.datasets.length == 0) {
+        return;
+    }
+
+    if (chart.data.datasets[0].data.length < index) {
+        return;
+    }
+
+    chart.setActiveElements([
+        {
+            datasetIndex: 0,
+            index: index,
+        }
+    ]);
+    chart.update();
+}
+
+function setBubbleChartTooltips(vs, min, max, rMin, rMax, chartId) {
+    const chart = Chart.getChart(chartId);
+
+    if (chart == undefined) {
+        return;
+    }
+
+    chart.options.plugins.tooltip.callbacks.label = (tooltipItem) => {
+        if (tooltipItem == undefined) {
+            return "";
+        }
+        let avgStrength = Math.round((((tooltipItem.raw.r - rMin) * (max - min)) / (rMax - rMin)) + min);
+        if (vs) {
+            return [vs + " vs " + tooltipItem.raw.label, "Winrate " + tooltipItem.raw.x + "%", "AvgGain: " + tooltipItem.raw.y, "AvgRating: " + avgStrength];
+        } else {
+            return [tooltipItem.raw.label, "Winrate " + tooltipItem.raw.x + "%", "AvgGain: " + tooltipItem.raw.y, "AvgRating: " + avgStrength];
+        }
+    };
+}
+
+
+function setZeroLineColor(defaultColor, defaultTickColor, zeroColor, chartId) {
+    const chart = Chart.getChart(chartId);
+
+    if (chart == undefined) {
+        return;
+    }
+
+    chart.options.scales.y.grid.color = (context) => {
+        if (context.tick.value === 0) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.y.grid.tickColor = (context) => {
+        if (context.tick.value === 0) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.y.ticks.color = (context) => {
+        if (context.tick.value === 0) {
+            return 'red';
+        } else {
+            return defaultTickColor;
+        }
+    }
+
+    chart.options.scales.x.grid.color = (context) => {
+        if (context.tick.value === 50) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.x.grid.tickColor = (context) => {
+        if (context.tick.value === 50) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.x.ticks.color = (context) => {
+        if (context.tick.value === 50) {
+            return 'red';
+        } else {
+            return defaultTickColor;
+        }
+    }
+
+    chart.update();
 }

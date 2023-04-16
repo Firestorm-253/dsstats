@@ -9,7 +9,7 @@ public partial class RatingRepository
 {
     private async Task<UpdateResult> MauiUpdateRavenPlayers(Dictionary<RatingType, Dictionary<int, CalcRating>> mmrIdRatings)
     {
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var transaction = connection.BeginTransaction();
@@ -17,7 +17,7 @@ public partial class RatingRepository
 
         command.CommandText =
             $@"
-                INSERT OR REPLACE INTO PlayerRatings ({nameof(PlayerRating.PlayerRatingId)},{nameof(PlayerRating.RatingType)},{nameof(PlayerRating.Rating)},{nameof(PlayerRating.Games)},{nameof(PlayerRating.Wins)},{nameof(PlayerRating.Mvp)},{nameof(PlayerRating.TeamGames)},{nameof(PlayerRating.MainCount)},{nameof(PlayerRating.Main)},{nameof(PlayerRating.MmrOverTime)},{nameof(PlayerRating.Consistency)},{nameof(PlayerRating.Confidence)},{nameof(PlayerRating.IsUploader)},{nameof(PlayerRating.PlayerId)})
+                INSERT OR REPLACE INTO PlayerRatings ({nameof(PlayerRating.PlayerRatingId)},{nameof(PlayerRating.RatingType)},{nameof(PlayerRating.Rating)},{nameof(PlayerRating.Games)},{nameof(PlayerRating.Wins)},{nameof(PlayerRating.Mvp)},{nameof(PlayerRating.TeamGames)},{nameof(PlayerRating.MainCount)},{nameof(PlayerRating.Main)},{nameof(PlayerRating.MmrOverTime)},{nameof(PlayerRating.Deviation)},{nameof(PlayerRating.IsUploader)},{nameof(PlayerRating.PlayerId)})
                 VALUES ((SELECT {nameof(PlayerRating.PlayerRatingId)} from PlayerRatings where {nameof(PlayerRating.RatingType)} = $value1 AND {nameof(PlayerRating.PlayerId)} = $value13),$value1,$value2,$value3,$value4,$value5,$value6,$value7,$value8,$value9,$value10,$value11,$value12,$value13)
             ";
 
@@ -45,8 +45,7 @@ public partial class RatingRepository
                 parameters[6].Value = main.Value;
                 parameters[7].Value = (int)main.Key;
                 parameters[8].Value = GetDbMmrOverTime(calcEnt.MmrOverTime);
-                parameters[9].Value = calcEnt.Consistency;
-                parameters[10].Value = calcEnt.Confidence;
+                parameters[10].Value = calcEnt.Deviation;
                 parameters[11].Value = calcEnt.IsUploader;
                 parameters[12].Value = calcEnt.PlayerId;
                 await command.ExecuteNonQueryAsync();
@@ -63,7 +62,7 @@ public partial class RatingRepository
 
     private async Task SetPlayerRatingPos()
     {
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         foreach (RatingType ratingType in Enum.GetValues(typeof(RatingType)))
@@ -114,7 +113,7 @@ public partial class RatingRepository
                 };
 
                 var fromDate = GetRatingChangesFromDate(request.TimePeriod);
-
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                 var statsQuery = from r in context.Replays
                           from rr in context.ReplayPlayers.Where(x => x.ReplayId == r.ReplayId)
                           from pr in rr.ReplayPlayerRatingInfo.ReplayPlayer.Player.PlayerRatings
@@ -130,7 +129,7 @@ public partial class RatingRepository
                               g.Key.PlayerRatingId,
                               RatingChange = MathF.Round(g.Sum(s => s.rr.ReplayPlayerRatingInfo.RatingChange), 2)
                           };
-
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 var stats = await statsQuery.ToListAsync();
 
                 foreach (var stat in stats)
@@ -182,7 +181,7 @@ public partial class RatingRepository
             await DeleteReplayRatingsTable();
         }
 
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var transaction = connection.BeginTransaction();
@@ -190,12 +189,12 @@ public partial class RatingRepository
 
         command.CommandText =
             $@"
-                INSERT INTO {nameof(ReplayContext.ReplayRatings)} ({nameof(ReplayRating.ReplayRatingId)}, {nameof(ReplayRating.RatingType)},{nameof(ReplayRating.LeaverType)},{nameof(ReplayRating.ReplayId)})
-                VALUES ($value1,$value2,$value3,$value4)
+                INSERT INTO {nameof(ReplayContext.ReplayRatings)} ({nameof(ReplayRating.ReplayRatingId)}, {nameof(ReplayRating.RatingType)},{nameof(ReplayRating.LeaverType)},{nameof(ReplayRating.ExpectationToWin)},{nameof(ReplayRating.ReplayId)})
+                VALUES ($value1,$value2,$value3,$value4,$value5)
             ";
 
         List<SqliteParameter> parameters = new List<SqliteParameter>();
-        for (int i = 1; i <= 4; i++)
+        for (int i = 1; i <= 5; i++)
         {
             var parameter = command.CreateParameter();
             parameter.ParameterName = $"$value{i}";
@@ -211,7 +210,8 @@ public partial class RatingRepository
             parameters[0].Value = replayRatingAppendId;
             parameters[1].Value = (int)replayRatingDto.RatingType;
             parameters[2].Value = (int)replayRatingDto.LeaverType;
-            parameters[3].Value = replayRatingDto.ReplayId;
+            parameters[3].Value = replayRatingDto.ExpectationToWin;
+            parameters[4].Value = replayRatingDto.ReplayId;
             await command.ExecuteNonQueryAsync();
         }
         await transaction.CommitAsync();
@@ -221,7 +221,7 @@ public partial class RatingRepository
 
     private async Task<int> MauiUpdateRepPlayerRatings(List<ReplayRatingDto> replayRatingDtos, int replayRatingAppendId, int repPlayerRatingAppendId)
     {
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var transaction = connection.BeginTransaction();
@@ -229,7 +229,7 @@ public partial class RatingRepository
 
         command.CommandText =
             $@"
-                INSERT INTO {nameof(ReplayContext.RepPlayerRatings)} ({nameof(RepPlayerRating.RepPlayerRatingId)},{nameof(RepPlayerRating.GamePos)},{nameof(RepPlayerRating.Rating)},{nameof(RepPlayerRating.RatingChange)},{nameof(RepPlayerRating.Games)},{nameof(RepPlayerRating.Consistency)},{nameof(RepPlayerRating.Confidence)},{nameof(RepPlayerRating.ReplayPlayerId)},{nameof(RepPlayerRating.ReplayRatingInfoId)})
+                INSERT INTO {nameof(ReplayContext.RepPlayerRatings)} ({nameof(RepPlayerRating.RepPlayerRatingId)},{nameof(RepPlayerRating.GamePos)},{nameof(RepPlayerRating.Rating)},{nameof(RepPlayerRating.RatingChange)},{nameof(RepPlayerRating.Games)},{nameof(RepPlayerRating.Deviation)},{nameof(RepPlayerRating.ReplayPlayerId)},{nameof(RepPlayerRating.ReplayRatingInfoId)})
                 VALUES ($value1,$value2,$value3,$value4,$value5,$value6,$value7,$value8,$value9)
             ";
 
@@ -257,8 +257,7 @@ public partial class RatingRepository
                 parameters[2].Value = repPlayerRatingDto.Rating;
                 parameters[3].Value = repPlayerRatingDto.RatingChange;
                 parameters[4].Value = repPlayerRatingDto.Games;
-                parameters[5].Value = repPlayerRatingDto.Consistency;
-                parameters[6].Value = repPlayerRatingDto.Confidence;
+                parameters[6].Value = repPlayerRatingDto.Deviation;
                 parameters[7].Value = repPlayerRatingDto.ReplayPlayerId;
                 parameters[8].Value = replayRatingAppendId;
                 await command.ExecuteNonQueryAsync();
@@ -271,7 +270,7 @@ public partial class RatingRepository
 
     private async Task DeleteReplayPlayerRatingsTable()
     {
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var delCommand = new SqliteCommand($"DELETE FROM {nameof(ReplayContext.RepPlayerRatings)};", connection);
@@ -280,7 +279,7 @@ public partial class RatingRepository
 
     private async Task DeleteReplayRatingsTable()
     {
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var delCommand = new SqliteCommand($"DELETE FROM {nameof(ReplayContext.ReplayRatings)};", connection);
@@ -289,7 +288,7 @@ public partial class RatingRepository
 
     private async Task DeletePlayerRatingChangesTable()
     {
-        using var connection = new SqliteConnection(Data.SqliteConnectionString);
+        using var connection = new SqliteConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var delCommand = new SqliteCommand($"DELETE FROM {nameof(ReplayContext.PlayerRatingChanges)};", connection);

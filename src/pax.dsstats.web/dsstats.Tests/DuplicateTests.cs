@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
+using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
 using pax.dsstats.web.Server.Services;
 using System.Data.Common;
@@ -50,10 +51,15 @@ public class DuplicateTest : IDisposable
 
         serviceCollection.AddTransient<IReplayRepository, ReplayRepository>();
         serviceCollection.AddAutoMapper(typeof(AutoMapperProfile));
+        serviceCollection.AddSingleton<pax.dsstats.web.Server.Services.Import.ImportService>();
         serviceCollection.AddLogging();
+        serviceCollection.AddHttpClient();
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
-        uploadService = new UploadService(serviceProvider, mapper, NullLogger<UploadService>.Instance);
+
+        var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+
+        uploadService = new UploadService(serviceProvider, mapper, httpClientFactory, NullLogger<UploadService>.Instance);
     }
 
     ReplayContext CreateContext() => new ReplayContext(_contextOptions);

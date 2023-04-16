@@ -26,6 +26,14 @@ public class ReplayContext : DbContext
     public virtual DbSet<SkipReplay> SkipReplays { get; set; } = null!;
     public virtual DbSet<CommanderMmr> CommanderMmrs { get; set; } = null!;
     public virtual DbSet<GroupByHelper> GroupByHelpers { get; set; } = null!;
+    public virtual DbSet<FunStatsMemory> FunStatMemories { get; set; } = null!;
+    public virtual DbSet<ArcadeReplay> ArcadeReplays { get; set; } = null!;
+    public virtual DbSet<ArcadeReplayPlayer> ArcadeReplayPlayers { get; set; } = null!;
+    public virtual DbSet<ArcadePlayer> ArcadePlayers { get; set; } = null!;
+    public virtual DbSet<ArcadeReplayRating> ArcadeReplayRatings { get; set; } = null!;
+    public virtual DbSet<ArcadePlayerRating> ArcadePlayerRatings { get; set; } = null!;
+    public virtual DbSet<ArcadeReplayPlayerRating> ArcadeReplayPlayerRatings { get; set; } = null!;
+    public virtual DbSet<ArcadePlayerRatingChange> ArcadePlayerRatingChanges { get; set; } = null!;
 
     public ReplayContext(DbContextOptions<ReplayContext> options)
     : base(options)
@@ -42,6 +50,7 @@ public class ReplayContext : DbContext
             entity.HasIndex(e => new { e.GameTime, e.GameMode, e.DefaultFilter });
             entity.HasIndex(e => new { e.GameTime, e.GameMode, e.WinnerTeam });
             entity.HasIndex(e => new { e.GameTime, e.GameMode, e.Maxleaver });
+            entity.HasIndex(e => e.Imported);
 
             entity.Property(p => p.ReplayHash)
                 .HasMaxLength(64)
@@ -74,7 +83,7 @@ public class ReplayContext : DbContext
 
         modelBuilder.Entity<Player>(entity =>
         {
-            entity.HasIndex(e => e.ToonId).IsUnique();
+            entity.HasIndex(e => new { e.RegionId, e.RealmId, e.ToonId }).IsUnique();
         });
 
         modelBuilder.Entity<Uploader>(entity =>
@@ -112,6 +121,30 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<PlayerRating>(entity =>
         {
             entity.HasIndex(e => e.RatingType);
+        });
+
+        modelBuilder.Entity<ArcadeReplay>(entity =>
+        {
+            entity.HasIndex(i => new { i.GameMode, i.CreatedAt });
+            entity.HasIndex(i => new { i.RegionId, i.GameMode, i.CreatedAt });
+            entity.HasIndex(i => new { i.RegionId, i.BnetBucketId, i.BnetRecordId }).IsUnique();
+            entity.HasIndex(i => i.ReplayHash);
+        });
+
+        modelBuilder.Entity<ArcadePlayer>(entity =>
+        {
+            entity.HasIndex(i => i.Name);
+            entity.HasIndex(i => new { i.RegionId, i.RealmId, i.ProfileId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ArcadePlayerRating>(entity =>
+        {
+            entity.HasIndex(i => i.RatingType);
+        });
+
+        modelBuilder.Entity<ReplayRating>(entity =>
+        {
+            entity.HasIndex(i => i.RatingType);
         });
     }
 }

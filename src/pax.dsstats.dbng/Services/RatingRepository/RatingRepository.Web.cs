@@ -9,7 +9,7 @@ public partial class RatingRepository
 {
     private async Task<UpdateResult> MysqlUpdateRavenPlayers(Dictionary<RatingType, Dictionary<int, CalcRating>> mmrIdRatings)
     {
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var transaction = connection.BeginTransaction();
@@ -23,9 +23,9 @@ public partial class RatingRepository
         //    ";
         command.CommandText =
             $@"
-                INSERT INTO PlayerRatings ({nameof(PlayerRating.PlayerRatingId)},{nameof(PlayerRating.RatingType)},{nameof(PlayerRating.Rating)},{nameof(PlayerRating.Games)},{nameof(PlayerRating.Wins)},{nameof(PlayerRating.Mvp)},{nameof(PlayerRating.TeamGames)},{nameof(PlayerRating.MainCount)},{nameof(PlayerRating.Main)},{nameof(PlayerRating.MmrOverTime)},{nameof(PlayerRating.Consistency)},{nameof(PlayerRating.Confidence)},{nameof(PlayerRating.IsUploader)},{nameof(PlayerRating.PlayerId)})
+                INSERT INTO PlayerRatings ({nameof(PlayerRating.PlayerRatingId)},{nameof(PlayerRating.RatingType)},{nameof(PlayerRating.Rating)},{nameof(PlayerRating.Games)},{nameof(PlayerRating.Wins)},{nameof(PlayerRating.Mvp)},{nameof(PlayerRating.TeamGames)},{nameof(PlayerRating.MainCount)},{nameof(PlayerRating.Main)},{nameof(PlayerRating.MmrOverTime)},{nameof(PlayerRating.Deviation)},{nameof(PlayerRating.IsUploader)},{nameof(PlayerRating.PlayerId)})
                 VALUES ((SELECT t.{nameof(PlayerRating.PlayerRatingId)} FROM (SELECT * from PlayerRatings where {nameof(PlayerRating.RatingType)} = @value1 AND {nameof(PlayerRating.PlayerId)} = @value13) as t),@value1,@value2,@value3,@value4,@value5,@value6,@value7,@value8,@value9,@value10,@value11,@value12,@value13)
-                ON DUPLICATE KEY UPDATE {nameof(PlayerRating.Rating)}=@value2,{nameof(PlayerRating.Games)}=@value3,{nameof(PlayerRating.Wins)}=@value4,{nameof(PlayerRating.Mvp)}=@value5,{nameof(PlayerRating.TeamGames)}=@value6,{nameof(PlayerRating.MainCount)}=@value7,{nameof(PlayerRating.Main)}=@value8,{nameof(PlayerRating.MmrOverTime)}=@value9,{nameof(PlayerRating.Consistency)}=@value10,{nameof(PlayerRating.Confidence)}=@value11,{nameof(PlayerRating.IsUploader)}=@value12
+                ON DUPLICATE KEY UPDATE {nameof(PlayerRating.Rating)}=@value2,{nameof(PlayerRating.Games)}=@value3,{nameof(PlayerRating.Wins)}=@value4,{nameof(PlayerRating.Mvp)}=@value5,{nameof(PlayerRating.TeamGames)}=@value6,{nameof(PlayerRating.MainCount)}=@value7,{nameof(PlayerRating.Main)}=@value8,{nameof(PlayerRating.MmrOverTime)}=@value9,{nameof(PlayerRating.Deviation)}=@value11,{nameof(PlayerRating.IsUploader)}=@value12
             ";
         command.Transaction = transaction;
 
@@ -53,17 +53,15 @@ public partial class RatingRepository
                 parameters[6].Value = main.Value;
                 parameters[7].Value = (int)main.Key;
                 parameters[8].Value = GetDbMmrOverTime(calcEnt.MmrOverTime);
-                parameters[9].Value = calcEnt.Consistency;
-                parameters[10].Value = calcEnt.Confidence;
+                parameters[10].Value = calcEnt.Deviation;
                 parameters[11].Value = calcEnt.IsUploader;
                 parameters[12].Value = calcEnt.PlayerId;
+                command.CommandTimeout = 120;
                 await command.ExecuteNonQueryAsync();
             }
         }
         await transaction.CommitAsync();
 
-        await SetPlayerRatingsPos();
-        await SetRatingChange();
         return new();
     }
 
@@ -93,10 +91,11 @@ public partial class RatingRepository
 
     private async Task DeleteMyqlReplayPlayerRatingsTable()
     {
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var delCommand = new MySqlCommand("TRUNCATE ReplayPlayerRatings;", connection);
+        delCommand.CommandTimeout = 120;
         await delCommand.ExecuteNonQueryAsync();
     }
 }

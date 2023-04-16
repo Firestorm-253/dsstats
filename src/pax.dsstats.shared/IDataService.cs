@@ -13,6 +13,7 @@ public interface IDataService
     Task<StatsResponse> GetStats(StatsRequest request, CancellationToken token = default);
     Task<StatsResponse> GetTourneyStats(StatsRequest request, CancellationToken token = default);
     Task<BuildResponse> GetBuild(BuildRequest request, CancellationToken token = default);
+    Task<CmdrStrengthResult> GetCmdrStrengthResults(CmdrStrengthRequest request, CancellationToken token);
 
     // ratings
     Task<int> GetRatingsCount(RatingsRequest request, CancellationToken token);
@@ -23,8 +24,13 @@ public interface IDataService
     Task<PlayerDetailsResult> GetPlayerDetailsNg(int toonId, int rating, CancellationToken token);
     Task<PlayerDetailsGroupResult> GetPlayerGroupDetails(int toonId, int rating, CancellationToken token);
     Task<List<PlayerMatchupInfo>> GetPlayerMatchups(int toonId, int ratingType, CancellationToken token);
+    Task<List<PlayerRatingReplayCalcDto>> GetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token);
+    ReplayRatingDto? GetOnlineRating(ReplayDetailsDto replayDto, List<PlayerRatingReplayCalcDto> calcDtos);
+    Task<DistributionResponse> GetDistribution(DistributionRequest request, CancellationToken token = default);
+
     //Task<List<RavenPlayerDto>> GetPlayerRatings(int toonId);
     Task<List<RequestNames>> GetTopPlayers(bool std);
+    Task<BuildRatingResponse> GetBuildByRating(BuildRatingRequest request, CancellationToken token = default);
 
     Task<CmdrResult> GetCmdrInfo(CmdrRequest request, CancellationToken token = default);
     Task<CrossTableResponse> GetCrossTable(CrossTableRequest request, CancellationToken token = default);
@@ -35,4 +41,14 @@ public interface IDataService
     Task<GameInfoResult> GetGameInfo(GameInfoRequest request, CancellationToken token);
     Task<int> GetRatingChangesCount(RatingChangesRequest request, CancellationToken token);
     Task<RatingChangesResult> GetRatingChanges(RatingChangesRequest request, CancellationToken token);
+    Task<PlayerDetailResponse> GetPlayerDetails(PlayerDetailRequest request, CancellationToken token);
+    Task<PlayerDetailSummary> GetPlayerSummary(int toonId, CancellationToken token = default);
+    Task<PlayerRatingDetails> GetPlayerRatingDetails(int toonId, RatingType ratingType, CancellationToken token = default);
+    Task<List<PlayerCmdrAvgGain>> GetPlayerCmdrAvgGain(int toonId, RatingType ratingType, TimePeriod timePeriod, CancellationToken token = default);
+    Task<FunStatsResult> GetFunStats(FunStatsRequest request, CancellationToken token);
+    Task<int> GetCmdrReplayInfosCount(CmdrInfoRequest request, CancellationToken token = default);
+    Task<List<ReplayCmdrInfo>> GetCmdrReplayInfos(CmdrInfoRequest request, CancellationToken token);
+    Task<List<CmdrPlayerInfo>> GetCmdrPlayerInfos(CmdrInfoRequest request, CancellationToken token = default);
+    Task<int> GetCmdrReplaysCount(CmdrInfosRequest request, CancellationToken token = default);
+    Task<List<ReplayCmdrListDto>> GetCmdrReplays(CmdrInfosRequest request, CancellationToken token = default);
 }

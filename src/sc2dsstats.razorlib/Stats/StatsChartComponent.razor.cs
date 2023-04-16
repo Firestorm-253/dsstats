@@ -86,7 +86,7 @@ public partial class StatsChartComponent : ComponentBase
         if (chartConfig.Options?.Scales?.Y is LinearAxis linearAxis)
         {
             linearAxis.BeginAtZero = beginAtZero;
-            chartComponent?.UpdateChartOptions();
+            chartConfig.UpdateChartOptions();
         }
     }
 
@@ -132,7 +132,7 @@ public partial class StatsChartComponent : ComponentBase
                     ChartType.line => SetLineChartConfig(statsRequest),
                     _ => SetBarChartConfig(statsRequest)
                 };
-                chartComponent?.DrawChart();
+                chartConfig.ReinitializeChart();
                 await ssInit.WaitAsync();
             }
         }
@@ -226,7 +226,7 @@ public partial class StatsChartComponent : ComponentBase
             && chartConfig.Options.Plugins.Title != null)
         {
             chartConfig.Options.Plugins.Title.Text = title;
-            chartComponent?.UpdateChartOptions();
+            chartConfig.UpdateChartOptions();
         }
     }
 
@@ -293,7 +293,7 @@ public partial class StatsChartComponent : ComponentBase
         {
             chartConfig.Options.Plugins.BarIcons = icons;
         }
-        chartComponent?.UpdateChartOptions();
+        chartConfig.UpdateChartOptions();
 
         return true;
     }
@@ -352,7 +352,7 @@ public partial class StatsChartComponent : ComponentBase
         //{
         //    chartConfig.Options.Plugins.BarIcons = icons;
         //}
-        //chartComponent?.UpdateChartOptions();
+        //chartConfig.UpdateChartOptions();
         return true;
     }
 
@@ -390,7 +390,7 @@ public partial class StatsChartComponent : ComponentBase
         {
             chartConfig.Options.Plugins.BarIcons = icons;
         }
-        chartComponent?.UpdateChartOptions();
+        chartConfig.UpdateChartOptions();
 
         return true;
     }
@@ -454,7 +454,7 @@ public partial class StatsChartComponent : ComponentBase
             {
                 Legend = new Legend()
                 {
-                    Position = "right",
+                    Position = "bottom",
                     Labels = new Labels()
                     {
                         Color = "#f2f2f2",
@@ -492,7 +492,7 @@ public partial class StatsChartComponent : ComponentBase
             {
                 Legend = new Legend()
                 {
-                    Position = "right",
+                    Position = "bottom",
                     Labels = new Labels()
                     {
                         Color = "#f2f2f2",
@@ -546,11 +546,13 @@ public partial class StatsChartComponent : ComponentBase
         chartConfig.Data.Datasets = new List<ChartJsDataset>();
         chartConfig.Options = new IconsChartJsOptions()
         {
+            Responsive = true,
+            MaintainAspectRatio = true,
             Plugins = new IconsPlugins()
             {
                 Legend = new Legend()
                 {
-                    Position = "right"
+                    Position = "bottom"
                 },
                 Title = new Title()
                 {

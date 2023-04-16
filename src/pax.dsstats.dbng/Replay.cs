@@ -75,6 +75,7 @@ public class Player
     public string Name { get; set; } = null!;
     public int ToonId { get; set; }
     public int RegionId { get; set; }
+    public int RealmId { get; set; }
     public int NotUploadCount { get; set; }
     public int DisconnectCount { get; set; }
     public int RageQuitCount { get; set; }
@@ -98,8 +99,7 @@ public class PlayerRating
     public Commander Main { get; set; }
     [MaxLength(4000)]
     public string MmrOverTime { get; set; } = string.Empty;
-    public double Consistency { get; set; }
-    public double Confidence { get; set; }
+    public double Deviation { get; set; }
     public bool IsUploader { get; set; }
     public PlayerRatingChange? PlayerRatingChange { get; set; }
     public int PlayerId { get; set; }
@@ -165,9 +165,12 @@ public class Replay
     public int ReplayId { get; set; }
     [MaxLength(500)]
     public string FileName { get; set; } = null!;
+    public bool Uploaded { get; set; }
     public bool TournamentEdition { get; set; }
     [Precision(0)]
     public DateTime GameTime { get; set; }
+    [Precision(0)]
+    public DateTime? Imported { get; set; }
     public int Duration { get; set; }
     public int WinnerTeam { get; set; }
     public PlayerResult PlayerResult { get; set; }
@@ -198,6 +201,8 @@ public class Replay
     public virtual ICollection<Uploader> Uploaders { get; set; }
     [NotMapped]
     public int UploaderId { get; set; }
+    [NotMapped]
+    public string Blobfile { get; set; } = string.Empty;
 }
 
 public class ReplayPlayer

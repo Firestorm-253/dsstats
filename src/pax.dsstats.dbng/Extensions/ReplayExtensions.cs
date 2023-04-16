@@ -148,6 +148,40 @@ public static class ReplayExtensions
         return sb.ToString();
     }
 
+    public static string GenMemKey(this CmdrStrengthRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("cmdrStrength");
+        sb.Append(request.RatingType.ToString());
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.Interest);
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this DistributionRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("dist");
+        sb.Append(request.RatingType.ToString());
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.ToonId);
+        sb.Append(request.Interest);
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this BuildRatingRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("buildrating");
+        sb.Append(request.RatingType.ToString());
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.Interest);
+        sb.Append(request.Vs);
+        sb.Append($"{request.FromRating}-{request.ToRating}");
+        sb.Append(request.Breakpoint.ToString());
+        return sb.ToString();
+    }
+
     public static string GetMd5Hash(MD5 md5Hash, string input)
     {
         byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
@@ -157,5 +191,39 @@ public static class ReplayExtensions
             sBuilder.Append(data[i].ToString("x2"));
         }
         return sBuilder.ToString();
+    }
+
+    public static string GetHash(this ReplayDsRDto replay)
+    {
+        StringBuilder sb = new();
+
+        sb.Append((int)replay.GameMode);
+        sb.Append(replay.Playercount);
+        sb.Append(replay.WinnerTeam);
+        sb.Append(replay.TournamentEdition);
+        sb.Append(String.Concat(replay.ReplayPlayers.OrderBy(o => o.GamePos).Select(s => $"{s.GamePos}{s.Player.ToonId}")));
+        return sb.ToString();
+    }
+
+    public static void GenHash(this ArcadeReplay replay, MD5 md5)
+    {
+        StringBuilder sb = new();
+        sb.Append((int)replay.GameMode);
+        sb.Append(replay.PlayerCount);
+        sb.Append(replay.RegionId);
+        sb.Append(replay.TournamentEdition);
+        sb.Append(String.Concat(replay.ArcadeReplayPlayers.OrderBy(o => o.ArcadePlayer.ProfileId).Select(s => $"{s.ArcadePlayer.ProfileId}|")));
+        replay.ReplayHash = GetMd5Hash(md5, sb.ToString());
+    }
+
+    public static string GenArcadeHash(this ReplayDsRDto replay, MD5 md5)
+    {        
+        StringBuilder sb = new();
+        sb.Append((int)replay.GameMode);
+        sb.Append(replay.Playercount);
+        sb.Append(replay.ReplayPlayers.FirstOrDefault()?.Player.RegionId ?? 0);
+        sb.Append(replay.TournamentEdition);
+        sb.Append(String.Concat(replay.ReplayPlayers.OrderBy(o => o.Player.ToonId).Select(s => $"{s.Player.ToonId}|")));
+        return GetMd5Hash(md5, sb.ToString());
     }
 }

@@ -14,6 +14,9 @@ The app can be used offline to analyze your stats locally. If you want to upload
 
 The app is distributed via the Microsoft Store to make installation as easy as possible. It is and always will be freely available.
 
+### GitHub Release
+To install the [GitHub release](https://github.com/ipax77/dsstats/releases/latest) follow the install instructions from [Microsoft](https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli#installing-the-app), please.
+
 ## Website
 [dsstats.pax77.org](https://dsstats.pax77.org)
 
@@ -27,14 +30,60 @@ We really like people helping us with the project. Nevertheless, take your time 
 
 ## ChangeLog
 
-<details open="open"><summary>v1.1.4 (web only atm)</summary>
+<details open="open"><summary>v1.2.0</summary>
 
->- CheatDetect Results
->- Rating calculation refactoring
+>- Players with RealmId
+>- Replay Upload impoved
+>- Cmdr Info
+>- Ratings produce rework
 
 </details>
 
-<details open="open"><summary>v1.1.3</summary>
+<details><summary>v1.1.9</summary>
+
+>- Builds by Ratings (suggested by heyrandompeople - ty!)
+>- Server Fun Stats (suggested by Mignoubou - ty!)
+>- Navigation redesign (website)
+>- Replay uploaded improved (flag instead of latest replay date)
+
+</details>
+
+<details><summary>v1.1.8</summary>
+
+>- Fix player details Server update
+
+</details>
+
+<details><summary>v1.1.7</summary>
+
+>- TimePeriod Patch 2.71 (2023-01-22)
+>- Fix player details update
+
+</details>
+
+<details><summary>v1.1.6</summary>
+
+>- Player Details rework
+
+</details>
+
+<details><summary>v1.1.5</summary>
+
+>- App (latest)replay live ratings
+>- Commander Strength Bubble Chart
+>- Sc2 Patch 5.0.11 - protocol 89720
+
+</details>
+
+<details><summary>v1.1.4</summary>
+
+>- CheatDetect Results
+>- Rating calculation refactoring
+>- Sc2 Patch 5.0.11b - protocol 89634
+
+</details>
+
+<details><summary>v1.1.3</summary>
 
 >- Tournament Edition RatingTypes (Cmdr 3v3 TE, Std 3v3 TE)
 >- Some Info links / tooltips (thx to heyrandompeople)

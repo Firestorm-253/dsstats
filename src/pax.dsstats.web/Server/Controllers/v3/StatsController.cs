@@ -238,5 +238,41 @@ namespace pax.dsstats.web.Server.Controllers.v3
         {
             return await statsService.GetServerStats(token);
         }
+
+        [HttpPost]
+        [Route("GetCmdrStrength")]
+        public async Task<ActionResult<CmdrStrengthResultV3>> GetCmdrStrength(CmdrStrengthRequest request, CancellationToken token)
+        {
+            try
+            {
+                var result = await statsService.GetCmdrStrengthResults(request, token);
+                return new CmdrStrengthResultV3(result);
+            }
+            catch (OperationCanceledException) { }
+            return NoContent();
+        }
     }
+}
+
+public record CmdrStrengthResultV3
+{
+    public CmdrStrengthResultV3(CmdrStrengthResult result)
+    {
+        Items = result.Items.Select(s => new CmdrStrengthItemV3()
+        {
+            Commander = s.Commander,
+            Matchups = s.Matchups,
+            AvgRating= s.AvgRating,
+            Wins = s.Wins,
+        }).ToList();
+    }
+    public List<CmdrStrengthItemV3> Items { get; init; }
+}
+
+public record CmdrStrengthItemV3
+{
+    public Commander Commander { get; init; }
+    public int Matchups { get; init; }
+    public double AvgRating { get; init; }
+    public int Wins { get; init; }
 }

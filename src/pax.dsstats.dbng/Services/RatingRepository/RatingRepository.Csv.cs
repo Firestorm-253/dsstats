@@ -19,8 +19,7 @@ public partial class RatingRepository
         sb.Append($"{nameof(PlayerRating.MainCount)},");
         sb.Append($"{nameof(PlayerRating.Main)},");
         sb.Append($"{nameof(PlayerRating.MmrOverTime)},");
-        sb.Append($"{nameof(PlayerRating.Consistency)},");
-        sb.Append($"{nameof(PlayerRating.Confidence)},");
+        sb.Append($"{nameof(PlayerRating.Deviation)},");
         sb.Append($"{nameof(PlayerRating.IsUploader)},");
         sb.Append($"{nameof(PlayerRating.PlayerId)},");
         sb.Append($"{nameof(PlayerRating.Pos)}");
@@ -44,8 +43,7 @@ public partial class RatingRepository
                 sb.Append($"{(int)main.Key},");
 
                 sb.Append($"\"{GetDbMmrOverTime(entCalc.MmrOverTime)}\",");
-                sb.Append($"{entCalc.Consistency.ToString(CultureInfo.InvariantCulture)},");
-                sb.Append($"{entCalc.Confidence.ToString(CultureInfo.InvariantCulture)},");
+                sb.Append($"{entCalc.Deviation.ToString(CultureInfo.InvariantCulture)},");
                 sb.Append($"{(entCalc.IsUploader ? 1 : 0)},");
 
                 sb.Append($"{entCalc.PlayerId},");
@@ -75,6 +73,7 @@ public partial class RatingRepository
             sbReplay.Append($"{replayAppendId},");
             sbReplay.Append($"{(int)replayRatingDto.RatingType},");
             sbReplay.Append($"{(int)replayRatingDto.LeaverType},");
+            sbReplay.Append($"{replayRatingDto.ExpectationToWin.ToString(CultureInfo.InvariantCulture)},");
             sbReplay.Append($"{replayRatingDto.ReplayId}");
             sbReplay.Append(Environment.NewLine);
 
@@ -86,8 +85,7 @@ public partial class RatingRepository
                 sbPlayer.Append($"{rpr.Rating.ToString(CultureInfo.InvariantCulture)},");
                 sbPlayer.Append($"{rpr.RatingChange.ToString(CultureInfo.InvariantCulture)},");
                 sbPlayer.Append($"{rpr.Games},");
-                sbPlayer.Append($"{rpr.Consistency.ToString(CultureInfo.InvariantCulture)},");
-                sbPlayer.Append($"{rpr.Confidence.ToString(CultureInfo.InvariantCulture)},");
+                sbPlayer.Append($"{rpr.Deviation.ToString(CultureInfo.InvariantCulture)},");
                 sbPlayer.Append($"{rpr.ReplayPlayerId},");
                 sbPlayer.Append($"{replayAppendId}");
                 sbPlayer.Append(Environment.NewLine);
@@ -106,48 +104,6 @@ public partial class RatingRepository
         }
         return (replayAppendId, replayPlayerAppendId);
     }
-
-    //public int WriteMmrChangeCsv(List<MmrChange> replayPlayerMmrChanges, int appendId, string csvBasePath)
-    //{
-    //    bool append = appendId > 0;
-
-    //    StringBuilder sb = new();
-    //    //if (!append)
-    //    //{
-    //    //    sb.Append($"{nameof(ReplayPlayerRating.ReplayPlayerRatingId)},");
-    //    //    sb.Append($"{nameof(ReplayPlayerRating.MmrChange)},");
-    //    //    sb.Append($"{nameof(ReplayPlayerRating.Pos)},");
-    //    //    sb.Append($"{nameof(ReplayPlayerRating.ReplayPlayerId)},");
-    //    //    sb.Append($"{nameof(ReplayPlayerRating.ReplayId)}");
-    //    //    sb.Append(Environment.NewLine);
-    //    //}
-
-    //    int i = appendId;
-
-    //    foreach (var change in replayPlayerMmrChanges)
-    //    {
-    //        foreach (var plChange in change.Changes)
-    //        {
-    //            i++;
-    //            sb.Append($"{i},");
-    //            sb.Append($"{plChange.Change.ToString(CultureInfo.InvariantCulture)},");
-    //            sb.Append($"{plChange.Pos},");
-    //            sb.Append($"{plChange.ReplayPlayerId},");
-    //            sb.Append($"{change.ReplayId}");
-    //            sb.Append(Environment.NewLine);
-    //        }
-    //    }
-
-    //    if (!append)
-    //    {
-    //        File.WriteAllText($"{csvBasePath}/ReplayPlayerRatings.csv", sb.ToString());
-    //    }
-    //    else
-    //    {
-    //        File.AppendAllText($"{csvBasePath}/ReplayPlayerRatings.csv", sb.ToString());
-    //    }
-    //    return i;
-    //}
 
     public static string GetDbMmrOverTime(List<TimeRating> timeRatings)
     {
@@ -243,7 +199,7 @@ public partial class RatingRepository
             return;
         }
 
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -262,9 +218,6 @@ public partial class RatingRepository
         ";
         command.CommandTimeout = 120;
         await command.ExecuteNonQueryAsync();
-
-        await SetPlayerRatingsPos();
-        await SetRatingChange();
     }
 
     private async Task ReplayRatingsFromCsv2MySql(string csvBasePath)
@@ -275,7 +228,7 @@ public partial class RatingRepository
             return;
         }
 
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -304,7 +257,7 @@ public partial class RatingRepository
             return;
         }
 
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -333,7 +286,7 @@ public partial class RatingRepository
             return;
         }
 
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -361,7 +314,7 @@ public partial class RatingRepository
             return;
         }
 
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -383,19 +336,21 @@ public partial class RatingRepository
 
     private async Task SetPlayerRatingsPos()
     {
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = "CALL SetPlayerRatingPos();";
+        command.CommandTimeout = 120;
         await command.ExecuteNonQueryAsync();
     }
 
     private async Task SetRatingChange()
     {
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = "CALL SetRatingChange();";
+        command.CommandTimeout = 120;
         await command.ExecuteNonQueryAsync();
     }
 }

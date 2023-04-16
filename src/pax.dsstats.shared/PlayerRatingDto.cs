@@ -21,6 +21,7 @@ public record PlayerRatingPlayerDto
     public string Name { get; set; } = null!;
     public int ToonId { get; set; }
     public int RegionId { get; set; }
+    public int RealmId { get; set; }
 }
 
 public record PlayerRatingDetailDto
@@ -34,8 +35,7 @@ public record PlayerRatingDetailDto
     public int TeamGames { get; init; }
     public int MainCount { get; init; }
     public Commander Main { get; init; }
-    public double Consistency { get; set; }
-    public double Confidence { get; set; }
+    public double Deviation { get; set; }
     public bool IsUploader { get; set; }
     public string MmrOverTime { get; set; } = "";
     public PlayerRatingPlayerDto Player { get; init; } = null!;
@@ -64,4 +64,17 @@ public record PlayerRatingChangeDto
     public float Change24h { get; set; }
     public float Change10d { get; set; }
     public float Change30d { get; set; }
+}
+
+public record PlayerRatingReplayCalcDto
+{
+    public double Rating { get; init; }
+    public int Games { get; init; }
+    public double Deviation { get; init; }
+    public PlayerReplayCalcDto Player { get; init; } = null!;
+}
+
+public record PlayerReplayCalcDto
+{
+    public int ToonId { get; init; }
 }
